@@ -18,15 +18,15 @@ def registrarUsuario(listaClientes):
     #Usuario
     usuario = input("Ingrese su usuario, se recomienda la primer letra del nombre y su apellido: ")    
     
-    existeCliente = False
-    while existeCliente == False:
+    existeCliente = True
+    while existeCliente:
+        existeCliente = False
         for cliente in listaClientes:
             if cliente["Usuario"] == usuario:
                 existeCliente = True
-                usuario = input("Nombre de usuario ya utilizado, ingrese otro usuario: ")    
-                break
-        if existeCliente == False:
-            break
+                print("Ese usuario ya fue registrado")
+                usuario = input("Ingrese otro usuario: ")
+
         
     nuevoCliente["Usuario"] = usuario
 
@@ -38,7 +38,7 @@ def registrarUsuario(listaClientes):
         if 8 <= len(contraseña1) <= 12:
             contraseña2 = input("Repita la contraseña: ")
             if contraseña1 == contraseña2:
-                break
+                return nuevoCliente
             else:
                 print("La contraseñas no coinciden. ")
         else:
@@ -46,7 +46,6 @@ def registrarUsuario(listaClientes):
 
     nuevoCliente["Contraseña"] = contraseña1
 
-    return nuevoCliente
 
 #Con esta función validamos que ingrsa todos los datos correctamente hasta iniciar sesión. 
 def iniciarSesion(lista):
