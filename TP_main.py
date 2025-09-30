@@ -73,10 +73,7 @@ def iniciarSesion(lista):
 
 def sumarUsuarioALaBD(cliente, listaClientes):
     """Agrega un cliente nuevo a la lista si aún no existe."""
-    if cliente not in listaClientes:
-        listaClientes.append(cliente)
-    return listaClientes
-
+    return [cliente for cliente in listaClientes if cliente not in listaClientes]
 
 def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
     """Crea una cuenta en ARS o USD si el cliente existe y no la tiene."""
