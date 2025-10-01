@@ -138,6 +138,63 @@ def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
      
     print(f"Saldo actual en {moneda}: {clienteEncontrado[tipoCuenta]:.2f} {moneda}")
 
+def transferirEntreCuentas(listaClientes, DNI, origen, destino, monto, tasa=1000):
+    """
+    Transfiere dinero entre cuentas de un cliente (Pesos <-> Dólares) sin usar 'break'.
+    Usa lambdas para convertir monedas (ARS <-> USD).
+
+    Parámetros:
+        listaClientes (list): lista con los clientes registrados
+        DNI (int): documento del cliente
+        origen (str): "Cuenta en pesos" o "Cuenta en dólares"
+        destino (str): "Cuenta en pesos" o "Cuenta en dólares"
+        monto (float): monto a transferir
+        tasa (float): cotización del dólar (1 USD = tasa ARS)
+    """
+    # Lambdas para conversión
+    usd_a_ars = lambda usd: usd * tasa
+    ars_a_usd = lambda ars: ars / tasa
+
+    # Buscar cliente
+    cliente = None
+    for c in listaClientes:
+        if c.get("DNI") == DNI:
+            cliente = c
+
+    # Verificaciones
+    if cliente is None:
+        print("Cliente no encontrado.")
+        return
+
+    # Asegurarnos que la estructura de cuentas exista
+    cliente.setdefault("Cuentas", {})
+
+    cuentas = cliente["Cuentas"]
+
+    if origen not in cuentas:
+        print("La cuenta de origen no existe.")
+        return
+
+    saldo_origen = cuentas.get(origen, 0)
+    if saldo_origen < monto:
+        print("Saldo insuficiente en la cuenta de origen.")
+        return
+
+    # Actualizar saldos
+    cuentas[origen] = saldo_origen - monto
+
+    if origen == "Cuenta en pesos" and destino == "Cuenta en dólares":
+        cuentas[destino] = cuentas.get(destino, 0) + ars_a_usd(monto)
+        print(f"Transferidos {monto:.2f} ARS a la cuenta en dólares.")
+
+    elif origen == "Cuenta en dólares" and destino == "Cuenta en pesos":
+        cuentas[destino] = cuentas.get(destino, 0) + usd_a_ars(monto)
+        print(f"Transferidos {monto:.2f} USD a la cuenta en pesos.")
+
+    else:
+        # Caso cuentas iguales o tipo inválido
+        print("Transferencia no válida (origen y destino iguales o nombres incorrectos).")
+
 
 #MAIN
 
@@ -188,21 +245,22 @@ if mostrar_menu == True:
         print("4. Crear una cuenta en dólares")
         print("5. Depositar dólares")
         print("6. Consultar saldo en dólares")
-        print("7. Salir")
+        print("7. Transferir entre cuentas")
+        print("8. Salir")
 
-        opcionCuentas = int(input("Ingrese un número del 1 al 7 según la operación que desee realizar: "))
+        opcionCuentas = int(input("Ingrese un número del 1 al 8 según la operación que desee realizar: "))
 
         if opcionCuentas == 1:
-            DNI = int(input("Ingrese se DNI: "))
+            DNI = int(input("Ingrese su DNI: "))
             crearCuenta(listaClientes, DNI, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 2:
-            DNI = int(input("Ingrese se DNI: "))
+            DNI = int(input("Ingrese su DNI: "))
             monto = float(input("Ingrese el monto a depositar en pesos: "))
             depositar(listaClientes, DNI, monto, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 3:
-            DNI = int(input("Ingrese se DNI: "))
+            DNI = int(input("Ingrese su DNI: "))
             consultarSaldo(listaClientes, DNI, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 4:
@@ -217,9 +275,28 @@ if mostrar_menu == True:
         elif opcionCuentas == 6:
             DNI = int(input("DNI: "))
             consultarSaldo(listaClientes, DNI, "Cuenta en dólares", "USD")
-        
+
         elif opcionCuentas == 7:
+            DNI = int(input("Ingrese su DNI: "))
+            monto = float(input("Ingrese el monto a transferir: "))
+
+            print("Seleccione tipo de transferencia:")
+            print("1. Pesos → Dólares")
+            print("2. Dólares → Pesos")
+            tipo = int(input("Opción: "))
+
+            if tipo == 1:
+                transferirEntreCuentas(listaClientes, DNI, "Cuenta en pesos", "Cuenta en dólares", monto)
+            elif tipo == 2:
+                transferirEntreCuentas(listaClientes, DNI, "Cuenta en dólares", "Cuenta en pesos", monto)
+            else:
+                print("Opción inválida.")
+
+        elif opcionCuentas == 8:
             print("Sesión finalizada. Muchas gracias.")
             continuarOperaciones = False
+
         else:
-            print("Opcion inválida")
+            print("Opción inválida")
+
+
