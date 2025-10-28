@@ -3,7 +3,22 @@ HomeBanking básico con registro, login, cuentas y operaciones simples.
 """
 
 def registrarUsuario(listaClientes):
-    """Registra un cliente validando DNI, usuario único y contraseña válida."""
+    
+    """
+Registra un nuevo cliente validando DNI, unicidad de usuario y requisitos de contraseña.
+
+Solicita al usuario ingresar su DNI. Si ya existe, termina el proceso.
+Si es nuevo, solicita un nombre de usuario (verifica que no esté repetido)
+y una contraseña (entre 8 y 12 caracteres, con confirmación).
+
+Args:
+    listaClientes (list): Lista actual de clientes (diccionarios) para verificar duplicados.
+
+Returns:
+    dict: Un diccionario con las claves DNI, Usuario y Contraseña del nuevo cliente si el registro es exitoso.
+    None: Si el DNI ya estaba registrado.
+"""   
+    
     nuevoCliente = {}
 
     #DNI
