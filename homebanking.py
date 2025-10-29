@@ -61,7 +61,17 @@ Returns:
 
 
 def iniciarSesion(lista):
-    """Verifica DNI, usuario y contraseña para iniciar sesión con reintentos."""
+    """
+    Verifica DNI, usuario y contraseña para iniciar sesión con reintentos.
+
+    Args:
+        lista (list): Una lista de diccionarios, donde cada diccionario representa a un cliente y debe contener las claves DNI, Usuario, y Contraseña.
+
+    Returns:
+        bool: True si el inicio de sesión es exitoso, False si el usuario
+              decide no reintentar después de un fallo.
+    """
+
     while True:
         DNI = int(input("Ingrese su DNI sin puntos, ejemplo: XXXXXXXX: "))
         dni_encontrado = False
@@ -87,14 +97,45 @@ def iniciarSesion(lista):
 
 
 def sumarUsuarioALaBD(cliente, listaClientes):
-    """Agrega un cliente nuevo a la lista si aún no existe."""
+    """
+    Agrega un diccionario de cliente a una lista si no existe previamente.
+
+    Comprueba si el diccionario 'cliente' ya se encuentra como un elemento dentro de 'listaClientes'. Si no se encuentra, lo agrega (append) a la lista.
+
+    Args:
+        cliente (dict): Un diccionario que representa al cliente que se desea agregar.
+        listaClientes (list): La lista de clientes (una lista de diccionarios) donde se intentará agregar el nuevo cliente.
+
+    Returns:
+        list: La lista de clientes actualizada (la misma lista que se pasó como argumento, actualizada)
+    """
     if cliente not in listaClientes:
         listaClientes.append(cliente)
     return listaClientes
 
 
 def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
-    """Crea una cuenta en ARS o USD si el cliente existe y no la tiene."""
+
+    """
+    Intenta crear una nueva cuenta con saldo 0.0 para un cliente existente.
+
+    La función busca un cliente por DNI en la lista.
+    1. Si el cliente no se encuentra, imprime un error y retorna None.
+    2. Si el cliente se encuentra, verifica si ya posee 'tipoCuenta'.
+    3. Si ya la posee, imprime un aviso y no hace nada más.
+    4. Si no la posee, agrega la clave 'tipoCuenta' al diccionario del cliente con un valor de 0.0 e imprime un mensaje de éxito.
+
+    Esta función modifica el diccionario del cliente "in-place" (por referencia) dentro de la listaClientes original.
+
+    Args:
+        listaClientes (list): La lista de diccionarios de clientes.
+        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        tipoCuenta (str): El nombre de la clave para la nueva cuenta que se desea crear (ej: "CajaAhorroARS", "CuentaCorrienteUSD").
+        moneda (str): El símbolo de la moneda (ej: "ARS", "USD") para usar en el mensaje de confirmación. No se almacena, solo se muestra en el 'print'.
+
+    Returns:
+        None: Esta función no retorna ningún valor útil. Su objetivo principal es modificar 'listaClientes' o imprimir mensajes en consola. Retorna 'None' explícitamente si el cliente no existe, e implícitamente 'None' en los demás casos.
+    """
     clienteEncontrado = None
 
     for cliente in listaClientes:
@@ -113,7 +154,28 @@ def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
 
 
 def depositar(listaClientes, DNI, monto, tipoCuenta,  moneda):
-    """Deposita un monto en la cuenta indicada si el cliente existe."""
+    """
+    Suma un monto específico al saldo de una cuenta de cliente existente.
+
+    La función busca al cliente por DNI. Realiza las siguientes validaciones:
+    1. Si el cliente no existe, imprime un error y retorna.
+    2. Si la 'tipoCuenta' especificada no existe en el diccionario del cliente, imprime un error y retorna.
+    3. Si el 'monto' a depositar es menor o igual a cero, imprime un error y retorna.
+
+    Si todas las validaciones son exitosas, suma el 'monto' al saldo actual de la 'tipoCuenta' del cliente y muestra un mensaje de éxito.
+
+    Esta función modifica el diccionario del cliente "in-place".
+
+    Args:
+        listaClientes (list): La lista de diccionarios de clientes.
+        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        monto (float or int): La cantidad de dinero a depositar. Debe ser un valor positivo.
+        tipoCuenta (str): El nombre de la clave de la cuenta que recibirá el depósito (ej: "CajaAhorroARS").
+        moneda (str): El símbolo de la moneda (ej: "ARS", "USD") para usar en el mensaje de confirmación.
+
+    Returns:
+        None: Esta función no retorna ningún valor. Su objetivo es modificar 'listaClientes' o imprimir mensajes en consola.
+    """
     clienteEncontrado = None
     for cliente in listaClientes:
         if cliente["DNI"] == DNI:
@@ -136,7 +198,25 @@ def depositar(listaClientes, DNI, monto, tipoCuenta,  moneda):
     
 
 def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
-    """Muestra el saldo de la cuenta indicada si existe."""
+    """
+    Muestra el saldo de una cuenta específica de un cliente si existe.
+
+    Busca al cliente por su DNI en la lista. Realiza las siguientes validaciones:
+    1. Si el cliente no se encuentra, imprime un error y retorna.
+    2. Si el cliente se encuentra, pero no posee la 'tipoCuenta' especificada, imprime un error y retorna.
+
+    Si tanto el cliente como la cuenta existen, imprime el saldo actual de esa cuenta, formateado a dos decimales.
+
+    Args:
+        listaClientes (list): La lista de diccionarios de clientes.
+        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        tipoCuenta (str): El nombre de la clave de la cuenta (ej: "CajaAhorroARS") cuyo saldo se desea consultar.
+        moneda (str): El símbolo de la moneda (ej: "ARS", "USD") para usar en el mensaje que se muestra en consola.
+
+    Returns:
+        None: Esta función no retorna ningún valor. Su único objetivo es imprimir el saldo o un mensaje de error en la consola.
+    """
+
     clienteEncontrado = None
 
     for cliente in listaClientes:
@@ -152,20 +232,31 @@ def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
         return
      
     print(f"Saldo actual en {moneda}: {clienteEncontrado[tipoCuenta]:.2f} {moneda}")
+    
 
 def transferirEntreCuentas(listaClientes, DNI, origen, destino, monto, tasa=1000):
     """
-    Transfiere dinero entre cuentas de un cliente (Pesos <-> Dólares) sin usar 'break'.
-    Usa lambdas para convertir monedas (ARS <-> USD).
+    Transfiere un monto entre las cuentas en pesos y dólares de un cliente.
 
-    Parámetros:
-        listaClientes (list): lista con los clientes registrados
-        DNI (int): documento del cliente
-        origen (str): "Cuenta en pesos" o "Cuenta en dólares"
-        destino (str): "Cuenta en pesos" o "Cuenta en dólares"
-        monto (float): monto a transferir
-        tasa (float): cotización del dólar (1 USD = tasa ARS)
+    La función busca al cliente por DNI. Asume que el cliente tiene un diccionario anidado llamado "Cuentas" (ej: {"Cuentas": {"Cuenta en pesos": 100}}).
+    Si el diccionario "Cuentas" no existe, lo crea vacío.
+
+    Realiza validaciones para asegurar que el cliente exista, la cuenta de origen exista y tenga saldo suficiente.
+
+    El 'monto' se debita de la cuenta 'origen' en su moneda original y se acredita en la cuenta 'destino' aplicando la conversión de moneda correspondiente (usando las funciones lambda internas y la 'tasa').
+
+    Args:
+        listaClientes (list): La lista de diccionarios de clientes.
+        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        origen (str): El nombre exacto de la cuenta de origen (ej: "Cuenta en pesos" o "Cuenta en dólares").
+        destino (str): El nombre exacto de la cuenta de destino (ej: "Cuenta en pesos" o "Cuenta en dólares").
+        monto (float or int): El monto a transferir, expresado en la moneda de la cuenta 'origen'.
+        tasa (float, optional): La tasa de cambio (ARS por USD). Por defecto es 1000.
+
+    Returns:
+        None: Esta función no retorna ningún valor. Modifica el diccionario del cliente "in-place" e imprime mensajes en la consola.
     """
+
     # Lambdas para conversión
     usd_a_ars = lambda usd: usd * tasa
     ars_a_usd = lambda ars: ars / tasa
