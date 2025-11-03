@@ -61,29 +61,30 @@ Returns:
 
 
 def iniciarSesion(lista):
-    """Verifica DNI, usuario y contraseña para iniciar sesión con reintentos."""
-    while True:
-        DNI = int(input("Ingrese su DNI sin puntos, ejemplo: XXXXXXXX: "))
-        dni_encontrado = False
-        
-        for cliente in lista:
-            if cliente["DNI"] == DNI:
-                dni_encontrado = True
-                usuario = input("Ingrese su usuario: ")
-                
-                if cliente["Usuario"] == usuario:
-                    contraseña = input("Ingrese su contraseña: ")
-                    
-                    if cliente["Contraseña"] == contraseña:
-                        print("Ingreso exitoso")
-                        return True
-        
-        if not dni_encontrado:
-            print("Algún dato se ingresó de manera incorrecta. ")
-        
-        continuar = int(input("¿Desea intentar ingresar nuevamente? Para volver a ingresar ingrese 1, para salir ingrese 2: "))
-        if continuar == 2:
-            return False
+    """Verifica DNI, usuario y contraseña con reintentos recursivos."""
+    opcion = input("Ingrese su DNI sin puntos (o 0 para salir): ")
+    if opcion == "0":
+        return False
+    
+    DNI = int(opcion)
+    
+    for cliente in lista:
+        if cliente["DNI"] == DNI:
+            usuario = input("Ingrese su usuario: ")
+            if cliente["Usuario"] == usuario:
+                contraseña = input("Ingrese su contraseña: ")
+                if cliente["Contraseña"] == contraseña:
+                    print("Ingreso exitoso")
+                    return True
+                else:
+                    print("Contraseña incorrecta. Intente nuevamente.")
+                    return iniciarSesion(lista) 
+            else:
+                print("Usuario incorrecto. Intente nuevamente.")
+                return iniciarSesion(lista)  
+
+    print("DNI no encontrado. Intente nuevamente.")
+    return iniciarSesion(lista)  
 
 
 def sumarUsuarioALaBD(cliente, listaClientes):
