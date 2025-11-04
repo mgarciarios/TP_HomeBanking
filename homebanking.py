@@ -5,9 +5,9 @@ HomeBanking básico con registro, login, cuentas y operaciones simples.
 def registrarUsuario(listaClientes):
     
     """
-Registra un nuevo cliente validando DNI, unicidad de usuario y requisitos de contraseña.
+Registra un nuevo cliente validando dni_actual, unicidad de usuario y requisitos de contraseña.
 
-Solicita al usuario ingresar su DNI. Si ya existe, termina el proceso.
+Solicita al usuario ingresar su dni_actual. Si ya existe, termina el proceso.
 Si es nuevo, solicita un nombre de usuario (verifica que no esté repetido)
 y una contraseña (entre 8 y 12 caracteres, con confirmación).
 
@@ -15,21 +15,21 @@ Args:
     listaClientes (list): Lista actual de clientes (diccionarios) para verificar duplicados.
 
 Returns:
-    dict: Un diccionario con las claves DNI, Usuario y Contraseña del nuevo cliente si el registro es exitoso.
-    None: Si el DNI ya estaba registrado.
+    dict: Un diccionario con las claves dni_actual, Usuario y Contraseña del nuevo cliente si el registro es exitoso.
+    None: Si el dni_actual ya estaba registrado.
 """   
     
     nuevoCliente = {}
 
-    #DNI
-    DNI = int(input("Ingrese su DNI, sin puntos: XXXXXXXX "))
+    #dni_actual
+    dni_actual = int(input("Ingrese su dni_actual, sin puntos: XXXXXXXX "))
 
     for cliente in listaClientes:
-        if cliente["DNI"] == DNI:
+        if cliente["dni_actual"] == dni_actual:
             print("El usuario ya esta registrado, inicie sesión. ")
             return  
 
-    nuevoCliente["DNI"] = DNI
+    nuevoCliente["dni_actual"] = dni_actual
 
     #Usuario
     usuario = input("Ingrese su usuario, se recomienda la primer letra del nombre y su apellido: ")    
@@ -62,10 +62,10 @@ Returns:
 
 def iniciarSesion(lista):
     """
-    Verifica DNI, usuario y contraseña para iniciar sesión con reintentos.
+    Verifica dni_actual, usuario y contraseña para iniciar sesión con reintentos.
 
     Args:
-        lista (list): Una lista de diccionarios, donde cada diccionario representa a un cliente y debe contener las claves DNI, Usuario, y Contraseña.
+        lista (list): Una lista de diccionarios, donde cada diccionario representa a un cliente y debe contener las claves dni_actual, Usuario, y Contraseña.
 
     Returns:
         bool: True si el inicio de sesión es exitoso, False si el usuario
@@ -73,12 +73,12 @@ def iniciarSesion(lista):
     """
 
     while True:
-        DNI = int(input("Ingrese su DNI sin puntos, ejemplo: XXXXXXXX: "))
-        dni_encontrado = False
+        dni_actual = int(input("Ingrese su dni_actual sin puntos, ejemplo: XXXXXXXX: "))
+        dni_actual_encontrado = False
         
         for cliente in lista:
-            if cliente["DNI"] == DNI:
-                dni_encontrado = True
+            if cliente["dni_actual"] == dni_actual:
+                dni_actual_encontrado = True
                 usuario = input("Ingrese su usuario: ")
                 
                 if cliente["Usuario"] == usuario:
@@ -86,40 +86,40 @@ def iniciarSesion(lista):
                     
                     if cliente["Contraseña"] == contraseña:
                         print("Ingreso exitoso")
-                        return True
+                        return cliente   # <-- DEVUELVE EL CLIENTE
         
-        if not dni_encontrado:
+        if not dni_actual_encontrado:
             print("Algún dato se ingresó de manera incorrecta. ")
         
-        continuar = int(input("¿Desea intentar ingresar nuevamente? Para volver a ingresar ingrese 1, para salir ingrese 2: "))
+        continuar = int(input("¿Desea intentar ingresar nuevamente? 1=Reintentar, 2=Salir: "))
         if continuar == 2:
-            return False
+            return None
 
 
 def sumarUsuarioALaBD(cliente, listaClientes):
     """
     Agrega un diccionario de cliente a una lista si no existe previamente.
 
-    Comprueba si el diccionario 'cliente' ya se encuentra como un elemento dentro de 'listaClientes'. Si no se encuentra, lo agrega (append) a la lista.
+    Comprueba si el diccionario 'cliente' ya se encuentra como un elemento dentro de 'listaClientes'. Si no se encuentra, lo agrega a la lista.
 
     Args:
         cliente (dict): Un diccionario que representa al cliente que se desea agregar.
-        listaClientes (list): La lista de clientes (una lista de diccionarios) donde se intentará agregar el nuevo cliente.
+        listaClientes (list): La lista de clientes donde se intentará agregar el nuevo cliente.
 
     Returns:
-        list: La lista de clientes actualizada (la misma lista que se pasó como argumento, actualizada)
+        list: La lista de clientes actualizada.
     """
     if cliente not in listaClientes:
         listaClientes.append(cliente)
     return listaClientes
 
 
-def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
+def crearCuenta(listaClientes, dni_actual, tipoCuenta, moneda):
 
     """
     Intenta crear una nueva cuenta con saldo 0.0 para un cliente existente.
 
-    La función busca un cliente por DNI en la lista.
+    La función busca un cliente por dni_actual en la lista.
     1. Si el cliente no se encuentra, imprime un error y retorna None.
     2. Si el cliente se encuentra, verifica si ya posee 'tipoCuenta'.
     3. Si ya la posee, imprime un aviso y no hace nada más.
@@ -129,7 +129,7 @@ def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
 
     Args:
         listaClientes (list): La lista de diccionarios de clientes.
-        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        dni_actual (int): El dni_actual para buscar al cliente.
         tipoCuenta (str): El nombre de la clave para la nueva cuenta que se desea crear (ej: "CajaAhorroARS", "CuentaCorrienteUSD").
         moneda (str): El símbolo de la moneda (ej: "ARS", "USD") para usar en el mensaje de confirmación. No se almacena, solo se muestra en el 'print'.
 
@@ -139,7 +139,7 @@ def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
     clienteEncontrado = None
 
     for cliente in listaClientes:
-        if cliente["DNI"] == DNI:
+        if cliente["dni_actual"] == dni_actual:
             clienteEncontrado = cliente
     
     if clienteEncontrado is None:
@@ -153,11 +153,11 @@ def crearCuenta(listaClientes, DNI, tipoCuenta, moneda):
         print(f"{tipoCuenta} creada exitosamente. Saldo inicial: 0.0 {moneda}")
 
 
-def depositar(listaClientes, DNI, monto, tipoCuenta,  moneda):
+def depositar(listaClientes, dni_actual, monto, tipoCuenta,  moneda):
     """
     Suma un monto específico al saldo de una cuenta de cliente existente.
 
-    La función busca al cliente por DNI. Realiza las siguientes validaciones:
+    La función busca al cliente por dni_actual. Realiza las siguientes validaciones:
     1. Si el cliente no existe, imprime un error y retorna.
     2. Si la 'tipoCuenta' especificada no existe en el diccionario del cliente, imprime un error y retorna.
     3. Si el 'monto' a depositar es menor o igual a cero, imprime un error y retorna.
@@ -168,8 +168,8 @@ def depositar(listaClientes, DNI, monto, tipoCuenta,  moneda):
 
     Args:
         listaClientes (list): La lista de diccionarios de clientes.
-        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
-        monto (float or int): La cantidad de dinero a depositar. Debe ser un valor positivo.
+        dni_actual (int): El dni_actual para buscar al cliente.
+        monto (float): La cantidad de dinero a depositar. Debe ser un valor positivo.
         tipoCuenta (str): El nombre de la clave de la cuenta que recibirá el depósito (ej: "CajaAhorroARS").
         moneda (str): El símbolo de la moneda (ej: "ARS", "USD") para usar en el mensaje de confirmación.
 
@@ -178,7 +178,7 @@ def depositar(listaClientes, DNI, monto, tipoCuenta,  moneda):
     """
     clienteEncontrado = None
     for cliente in listaClientes:
-        if cliente["DNI"] == DNI:
+        if cliente["dni_actual"] == dni_actual:
             clienteEncontrado = cliente
 
     if clienteEncontrado is None:
@@ -197,11 +197,11 @@ def depositar(listaClientes, DNI, monto, tipoCuenta,  moneda):
     print(f"Depósito realizado con éxito. Saldo actual: {clienteEncontrado[tipoCuenta]: .2f} {moneda}")
     
 
-def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
+def consultarSaldo(listaClientes, dni_actual, tipoCuenta, moneda):
     """
     Muestra el saldo de una cuenta específica de un cliente si existe.
 
-    Busca al cliente por su DNI en la lista. Realiza las siguientes validaciones:
+    Busca al cliente por su dni_actual en la lista. Realiza las siguientes validaciones:
     1. Si el cliente no se encuentra, imprime un error y retorna.
     2. Si el cliente se encuentra, pero no posee la 'tipoCuenta' especificada, imprime un error y retorna.
 
@@ -209,7 +209,7 @@ def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
 
     Args:
         listaClientes (list): La lista de diccionarios de clientes.
-        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        dni_actual (int): El dni_actual para buscar al cliente.
         tipoCuenta (str): El nombre de la clave de la cuenta (ej: "CajaAhorroARS") cuyo saldo se desea consultar.
         moneda (str): El símbolo de la moneda (ej: "ARS", "USD") para usar en el mensaje que se muestra en consola.
 
@@ -220,7 +220,7 @@ def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
     clienteEncontrado = None
 
     for cliente in listaClientes:
-        if cliente["DNI"] == DNI:
+        if cliente["dni_actual"] == dni_actual:
             clienteEncontrado = cliente
 
     if clienteEncontrado is None:
@@ -234,11 +234,11 @@ def consultarSaldo(listaClientes, DNI, tipoCuenta, moneda):
     print(f"Saldo actual en {moneda}: {clienteEncontrado[tipoCuenta]:.2f} {moneda}")
     
 
-def transferirEntreCuentas(listaClientes, DNI, origen, destino, monto, tasa=1000):
+def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, tasa=1000):
     """
     Transfiere un monto entre las cuentas en pesos y dólares de un cliente.
 
-    La función busca al cliente por DNI. Asume que el cliente tiene un diccionario anidado llamado "Cuentas" (ej: {"Cuentas": {"Cuenta en pesos": 100}}).
+    La función busca al cliente por dni_actual. Asume que el cliente tiene un diccionario anidado llamado "Cuentas" (ej: {"Cuentas": {"Cuenta en pesos": 100}}).
     Si el diccionario "Cuentas" no existe, lo crea vacío.
 
     Realiza validaciones para asegurar que el cliente exista, la cuenta de origen exista y tenga saldo suficiente.
@@ -247,11 +247,11 @@ def transferirEntreCuentas(listaClientes, DNI, origen, destino, monto, tasa=1000
 
     Args:
         listaClientes (list): La lista de diccionarios de clientes.
-        DNI (any): El DNI (usualmente int o str) para buscar al cliente.
+        dni_actual (int): El dni_actual para buscar al cliente.
         origen (str): El nombre exacto de la cuenta de origen (ej: "Cuenta en pesos" o "Cuenta en dólares").
         destino (str): El nombre exacto de la cuenta de destino (ej: "Cuenta en pesos" o "Cuenta en dólares").
-        monto (float or int): El monto a transferir, expresado en la moneda de la cuenta 'origen'.
-        tasa (float, optional): La tasa de cambio (ARS por USD). Por defecto es 1000.
+        monto (float): El monto a transferir, expresado en la moneda de la cuenta 'origen'.
+        tasa (float): La tasa de cambio (ARS por USD). Por defecto es 1000.
 
     Returns:
         None: Esta función no retorna ningún valor. Modifica el diccionario del cliente "in-place" e imprime mensajes en la consola.
@@ -264,7 +264,7 @@ def transferirEntreCuentas(listaClientes, DNI, origen, destino, monto, tasa=1000
     # Buscar cliente
     cliente = None
     for c in listaClientes:
-        if c.get("DNI") == DNI:
+        if c.get("dni_actual") == dni_actual:
             cliente = c
 
     # Verificaciones
@@ -306,42 +306,35 @@ def transferirEntreCuentas(listaClientes, DNI, origen, destino, monto, tasa=1000
 
 listaClientes = []
 mostrar_menu = False #Es una bandera para mostrar el menú de movimientos dentro del HomeBanking, dependiendo de si se ingresó bien o no a la plataforma
+cliente_actual = None
 
 print("Bienvenido al HomeBanking, a continuación se visualizará un menú, elija la opción según corresponda: ")
 
 opcionMain = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
 
 if opcionMain == 1:
-    ingresoUsuario = iniciarSesion(listaClientes)
+    cliente_actual = iniciarSesion(listaClientes)
 
-    if ingresoUsuario == True:
+    if cliente_actual is not None:
         print("Sesión iniciada correctamente")
         mostrar_menu = True
 
 elif opcionMain == 2:
     nuevoCliente = registrarUsuario(listaClientes)
-
-    actualizarBD = sumarUsuarioALaBD(nuevoCliente, listaClientes)
-
-    opcionInicioSesion = int(input("Ahora que creó una cuenta, desea iniciar sesión? Ingrese 1 para iniciar sesión, 2 para no iniciar sesión: "))
-
-    ingresoUsuario = iniciarSesion(listaClientes)
-    if opcionInicioSesion == 1 and ingresoUsuario == True:
+    if nuevoCliente is not None:
+        sumarUsuarioALaBD(nuevoCliente, listaClientes)
+        # Ingreso directo tras registrarse para simplificar (podés dejar tu pregunta si querés)
+        cliente_actual = nuevoCliente
+        print("Cuenta creada e iniciada sesión automáticamente.")
         mostrar_menu = True
-        
-
-    elif opcionInicioSesion == 2:
-        print("Ha salido de la página de HomeBanking.")
-        mostrar_menu = False
-    
     else:
-        print("Ingresó un valor incorrecto")
-
+        print("dni_actual ya registrado. Inicie sesión.")
 else:
     print("Ingresó un valor incorrecto")
 
 
-if mostrar_menu == True:
+if mostrar_menu and cliente_actual:
+    dni_actual = cliente_actual["dni_actual"]
     continuarOperaciones = True
     while continuarOperaciones:
         print("\n----MENÚ DE OPERACIONES----\n")
@@ -357,33 +350,26 @@ if mostrar_menu == True:
         opcionCuentas = int(input("Ingrese un número del 1 al 8 según la operación que desee realizar: "))
 
         if opcionCuentas == 1:
-            DNI = int(input("Ingrese su DNI: "))
-            crearCuenta(listaClientes, DNI, "Cuenta en pesos", "ARS")
+            crearCuenta(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 2:
-            DNI = int(input("Ingrese su DNI: "))
             monto = float(input("Ingrese el monto a depositar en pesos: "))
-            depositar(listaClientes, DNI, monto, "Cuenta en pesos", "ARS")
+            depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 3:
-            DNI = int(input("Ingrese su DNI: "))
-            consultarSaldo(listaClientes, DNI, "Cuenta en pesos", "ARS")
+            consultarSaldo(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 4:
-            DNI = int(input("DNI: "))
-            crearCuenta(listaClientes, DNI, "Cuenta en dólares", "USD")
+            crearCuenta(listaClientes, dni_actual, "Cuenta en dólares", "USD")
 
         elif opcionCuentas == 5:
-            DNI = int(input("DNI: "))
             monto = float(input("Ingrese el monto a depositar en dólares: "))
-            depositar(listaClientes, DNI, monto, "Cuenta en dólares", "USD")
+            depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
 
         elif opcionCuentas == 6:
-            DNI = int(input("DNI: "))
-            consultarSaldo(listaClientes, DNI, "Cuenta en dólares", "USD")
+            consultarSaldo(listaClientes, dni_actual, "Cuenta en dólares", "USD")
 
         elif opcionCuentas == 7:
-            DNI = int(input("Ingrese su DNI: "))
             monto = float(input("Ingrese el monto a transferir: "))
 
             print("Seleccione tipo de transferencia:")
@@ -392,9 +378,9 @@ if mostrar_menu == True:
             tipo = int(input("Opción: "))
 
             if tipo == 1:
-                transferirEntreCuentas(listaClientes, DNI, "Cuenta en pesos", "Cuenta en dólares", monto)
+                transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
             elif tipo == 2:
-                transferirEntreCuentas(listaClientes, DNI, "Cuenta en dólares", "Cuenta en pesos", monto)
+                transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
             else:
                 print("Opción inválida.")
 
