@@ -2,6 +2,9 @@
 HomeBanking básico con registro, login, cuentas y operaciones simples.
 """
 
+import os
+import time
+
 def registrarUsuario(listaClientes):
     
     """
@@ -55,8 +58,10 @@ Returns:
                 nuevoCliente["Contraseña"] = contraseña1
                 return nuevoCliente
             else:
+                limpiarPantalla()
                 print("La contraseñas no coinciden. ")
         else:
+            limpiarPantalla()
             print("La contraseña no cumple con los requisitos. ")
 
 
@@ -79,16 +84,20 @@ def iniciarSesion(lista):
         for cliente in lista:
             if cliente["dni_actual"] == dni_actual:
                 dni_actual_encontrado = True
+                limpiarPantalla()
                 usuario = input("Ingrese su usuario: ")
                 
                 if cliente["Usuario"] == usuario:
+                    limpiarPantalla()
                     contraseña = input("Ingrese su contraseña: ")
                     
                     if cliente["Contraseña"] == contraseña:
+                        limpiarPantalla()
                         print("Ingreso exitoso")
                         return cliente   # <-- DEVUELVE EL CLIENTE
         
         if not dni_actual_encontrado:
+            limpiarPantalla()
             print("Algún dato se ingresó de manera incorrecta. ")
         
         continuar = int(input("¿Desea intentar ingresar nuevamente? 1=Reintentar, 2=Salir: "))
@@ -143,13 +152,16 @@ def crearCuenta(listaClientes, dni_actual, tipoCuenta, moneda):
             clienteEncontrado = cliente
     
     if clienteEncontrado is None:
+        limpiarPantalla()
         print("El cliente no se encuentra dentro del sistema")
         return None
     
     if tipoCuenta in clienteEncontrado:
+        limpiarPantalla()
         print(f"El cliente ya posee una cuenta en {tipoCuenta}")
     else:
         clienteEncontrado[tipoCuenta] = 0.0
+        limpiarPantalla()
         print(f"{tipoCuenta} creada exitosamente. Saldo inicial: 0.0 {moneda}")
 
 
@@ -182,18 +194,22 @@ def depositar(listaClientes, dni_actual, monto, tipoCuenta,  moneda):
             clienteEncontrado = cliente
 
     if clienteEncontrado is None:
+        limpiarPantalla()
         print("El cliente no se encuentra dentro del sistema")
         return None
     
     if tipoCuenta not in clienteEncontrado:
+        limpiarPantalla()
         print(f"El cliente no posee una cuenta en {tipoCuenta}. Debe crearla primero")
         return
     
     if monto <= 0:
+        limpiarPantalla()
         print("El monto a depositar debe ser mayor a 0")
         return
     
     clienteEncontrado[tipoCuenta] +=monto
+    limpiarPantalla()
     print(f"Depósito realizado con éxito. Saldo actual: {clienteEncontrado[tipoCuenta]: .2f} {moneda}")
     
 
@@ -224,10 +240,12 @@ def consultarSaldo(listaClientes, dni_actual, tipoCuenta, moneda):
             clienteEncontrado = cliente
 
     if clienteEncontrado is None:
+        limpiarPantalla()
         print("El cliente no se encuentra dentro del sistema")
         return None
     
     if tipoCuenta not in clienteEncontrado:
+        limpiarPantalla()
         print(f"El cliente no posee una cuenta en {tipoCuenta}. Debe crearla primero")
         return
      
@@ -264,11 +282,13 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
     # Buscar cliente
     cliente = None
     for c in listaClientes:
+        limpiarPantalla()
         if c.get("dni_actual") == dni_actual:
             cliente = c
 
     # Verificaciones
     if cliente is None:
+        limpiarPantalla()
         print("Cliente no encontrado.")
         return
 
@@ -278,28 +298,45 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
     cuentas = cliente["Cuentas"]
 
     if origen not in cuentas:
+        limpiarPantalla()
         print("La cuenta de origen no existe.")
-        return
+        return None
 
     saldo_origen = cuentas.get(origen, 0)
     if saldo_origen < monto:
+        limpiarPantalla()
         print("Saldo insuficiente en la cuenta de origen.")
-        return
+        return None
 
     # Actualizar saldos
     cuentas[origen] = saldo_origen - monto
 
     if origen == "Cuenta en pesos" and destino == "Cuenta en dólares":
         cuentas[destino] = cuentas.get(destino, 0) + ars_a_usd(monto)
+        limpiarPantalla()
         print(f"Transferidos {monto:.2f} ARS a la cuenta en dólares.")
 
     elif origen == "Cuenta en dólares" and destino == "Cuenta en pesos":
         cuentas[destino] = cuentas.get(destino, 0) + usd_a_ars(monto)
+        limpiarPantalla()
         print(f"Transferidos {monto:.2f} USD a la cuenta en pesos.")
 
     else:
         # Caso cuentas iguales o tipo inválido
+        limpiarPantalla()
         print("Transferencia no válida (origen y destino iguales o nombres incorrectos).")
+
+def limpiarPantalla():
+    """
+    En dicha funcion es para un fin estético para limpiar la terminal para que el 
+    cliente opere más limpiamente.
+    La primera condicion es para usuarios Windows y el segundo para MacOs y Linux
+    """
+    if os.name == 'nt':
+        os.system('cls')
+    else:
+        os.system('clear')
+
 
 
 #MAIN
