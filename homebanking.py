@@ -353,8 +353,16 @@ if mostrar_menu and cliente_actual:
             crearCuenta(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
 
         elif opcionCuentas == 2:
-            monto = float(input("Ingrese el monto a depositar en pesos: "))
-            depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
+            clienteEncontrado = None
+            for c in listaClientes:
+                if c.get("dni_actual") == dni_actual:
+                    clienteEncontrado = c
+
+            if "Cuenta en pesos" in clienteEncontrado:
+                monto = float(input("Ingrese el monto a depositar en pesos: "))
+                depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
+            else:
+                print("No posee una cuenta en pesos. Debe crearla primero para depositar dinero.")
 
         elif opcionCuentas == 3:
             consultarSaldo(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
