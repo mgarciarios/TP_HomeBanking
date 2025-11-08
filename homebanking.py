@@ -401,15 +401,15 @@ if mostrar_menu and cliente_actual:
     dni_actual = cliente_actual["dni_actual"]
     continuarOperaciones = True
     while continuarOperaciones:
-        print("\n----MENÚ DE OPERACIONES----\n")
-        print("1. Crear una cuenta en pesos")
-        print("2. Depositar pesos")
-        print("3. Consultar saldo en pesos")
-        print("4. Crear una cuenta en dólares")
-        print("5. Depositar dólares")
-        print("6. Consultar saldo en dólares")
-        print("7. Transferir entre cuentas")
-        print("8. Salir")
+        print("\n|---------MENÚ DE OPERACIONES---------|")
+        print("| 1. Crear una cuenta en pesos        |")
+        print("| 2. Depositar pesos                  |")
+        print("| 3. Consultar saldo en pesos         |")
+        print("| 4. Crear una cuenta en dólares      |")
+        print("| 5. Depositar dólares                |")
+        print("| 6. Consultar saldo en dólares       |")
+        print("| 7. Transferir entre cuentas         |")
+        print("| 8. Salir                            |")
 
         opcionCuentas = int(input("Ingrese un número del 1 al 8 según la operación que desee realizar: "))
 
