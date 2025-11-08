@@ -374,7 +374,6 @@ if mostrar_menu and cliente_actual:
                 depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
             else:
                 print("No posee una cuenta en dólares. Debe crearla primero para depositar dinero.")
-
    
 
         elif opcionCuentas == 6:
