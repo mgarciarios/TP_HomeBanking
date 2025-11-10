@@ -4,6 +4,8 @@ HomeBanking básico con registro, login, cuentas y operaciones simples.
 import random
 import os
 import time
+import json
+from persistencia import guardarClientes, cargarClientes
 
 def limpiarPantalla():
     """
@@ -148,7 +150,7 @@ def iniciarSesion(lista):
 def sumarUsuarioALaBD(cliente, listaClientes):
     """
     Agrega un diccionario de cliente a una lista si no existe previamente.
-    """2
+    """
     if cliente not in listaClientes:
         listaClientes.append(cliente)
     return listaClientes
@@ -318,7 +320,7 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
 
 #MAIN
 
-listaClientes = []
+listaClientes = cargarClientes()
 mostrar_menu = False 
 cliente_actual = None
 
@@ -381,12 +383,14 @@ if mostrar_menu and cliente_actual:
 
         if opcionCuentas == 1:
             crearCuenta(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
+            guardarClientes(listaClientes)
 
         elif opcionCuentas == 2:
             if "Cuenta en pesos" in cliente_actual:
                 try:
                     monto = float(input("Ingrese el monto a depositar en pesos: "))
                     depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
+                    guardarClientes(listaClientes)
                 except ValueError:
                     print("Monto inválido. Ingrese un valor numérico.")
                     pausar_y_volver()
@@ -400,12 +404,14 @@ if mostrar_menu and cliente_actual:
 
         elif opcionCuentas == 4:
             crearCuenta(listaClientes, dni_actual, "Cuenta en dólares", "USD")
+            guardarClientes(listaClientes)
 
         elif opcionCuentas == 5:
             if "Cuenta en dólares" in cliente_actual:
                 try:
                     monto = float(input("Ingrese el monto a depositar en dólares: "))
                     depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
+                    guardarClientes(listaClientes)
                 except ValueError:
                     print("Monto inválido. Ingrese un valor numérico.")
                     pausar_y_volver()
@@ -429,8 +435,10 @@ if mostrar_menu and cliente_actual:
 
                 if tipo == 1:
                     transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
+                    guardarClientes(listaClientes)
                 elif tipo == 2:
                     transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
+                    guardarClientes(listaClientes)
                 else:
                     print("Opción de transferencia inválida.")
                     pausar_y_volver()
@@ -441,6 +449,7 @@ if mostrar_menu and cliente_actual:
 
         elif opcionCuentas == 8:
             print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
+            guardarClientes(listaClientes)
             continuarOperaciones = False
 
         else:
