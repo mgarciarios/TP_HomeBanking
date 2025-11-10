@@ -131,11 +131,11 @@ def iniciarSesion(lista):
                     
                     if cliente["Contraseña"] == contraseña:
                         print("Ingreso exitoso. Bienvenido/a.")
-                        return cliente  # <-- DEVUELVE EL CLIENTE
+                        return cliente 
                     else:
-                        break # Contraseña incorrecta, salimos del for
+                        break
                 else:
-                    break # Usuario incorrecto, salimos del for
+                    break 
         
         print("Algún dato se ingresó de manera incorrecta. DNI, Usuario o Contraseña no coinciden.")
         
@@ -167,7 +167,6 @@ def crearCuenta(listaClientes, dni_actual, tipoCuenta, moneda):
         if cliente["dni_actual"] == dni_actual: 
             clienteEncontrado = cliente
     
-    # limpiarPantalla()
     if clienteEncontrado is None:
         print("El cliente no se encuentra dentro del sistema")
         return None
@@ -313,9 +312,10 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
 def registrarOperacion(usuario, tipo_operacion, archivo="operaciones.csv"):
     """
     Registra una operación realizada por un cliente en un archivo CSV.
-
     Si el archivo no existe, lo crea y escribe el encabezado. 
     Cada registro contiene: tipo_operacion;usuario;fecha_hora
+       Args: usuario, tipo_operacion, archivo
+       Returns: operaciones.csv con tipo_operacion; usuario; fecha_hora
     """
 
     if not os.path.exists(archivo):
