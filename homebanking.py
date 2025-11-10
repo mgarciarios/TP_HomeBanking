@@ -360,7 +360,7 @@ def main():
         while continuarOperaciones:
             limpiarPantalla()
             print("\n+-------------------------MENÚ DE OPERACIONES-------------------------+")
-            print(f"| Bienvenido/a | Usuario: {cliente_actual["Usuario"]} | DNI: {cliente_actual["dni_actual"]}")
+            print(f"| Bienvenido/a | Usuario: {cliente_actual['Usuario']} | DNI: {cliente_actual['dni_actual']}")
             print("+---------------------------------------------------------------------+")
             print("| 1. Crear una cuenta en pesos (ARS)                                  |")
             print("| 2. Depositar pesos (ARS)                                            |")
