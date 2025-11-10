@@ -148,7 +148,7 @@ def iniciarSesion(lista):
 def sumarUsuarioALaBD(cliente, listaClientes):
     """
     Agrega un diccionario de cliente a una lista si no existe previamente.
-    """2
+    """
     if cliente not in listaClientes:
         listaClientes.append(cliente)
     return listaClientes
@@ -317,132 +317,134 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
     pausar_y_volver()
 
 #MAIN
+def main():
+    listaClientes = []
+    mostrar_menu = False 
+    cliente_actual = None
 
-listaClientes = []
-mostrar_menu = False 
-cliente_actual = None
+    limpiarPantalla()
+    print("+---------------------------------------------------------------------+")
+    print("| Bienvenido/a al HomeBanking. Elija una opción para comenzar.        |")
+    print("+---------------------------------------------------------------------+")
 
-limpiarPantalla()
-print("+---------------------------------------------------------------------+")
-print("| Bienvenido/a al HomeBanking. Elija una opción para comenzar.        |")
-print("+---------------------------------------------------------------------+")
+    try:
+        opcionMain = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
+    except ValueError:
+        print("Ingresó un valor no numérico.")
+        time.sleep(1.5)
+        exit()
 
-try:
-    opcionMain = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
-except ValueError:
-    print("Ingresó un valor no numérico.")
-    time.sleep(1.5)
-    exit()
+    if opcionMain == 1:
+        cliente_actual = iniciarSesion(listaClientes)
 
-if opcionMain == 1:
-    cliente_actual = iniciarSesion(listaClientes)
+        if cliente_actual is not None:
+            mostrar_menu = True
 
-    if cliente_actual is not None:
-        mostrar_menu = True
-
-elif opcionMain == 2:
-    nuevoCliente = registrarUsuario(listaClientes)
-    if nuevoCliente is not None:
-        sumarUsuarioALaBD(nuevoCliente, listaClientes)
-        cliente_actual = nuevoCliente
-        print("Cuenta creada e iniciada sesión automáticamente.")
-        mostrar_menu = True
-    else:
-        print("Finalizando... Inicie sesión en el próximo intento.")
-else:
-    print("Opción inválida en el menú principal.")
-    time.sleep(1.5)
-
-
-if mostrar_menu and cliente_actual:
-    dni_actual = cliente_actual["dni_actual"]
-    continuarOperaciones = True
-    while continuarOperaciones:
-        limpiarPantalla()
-        print("\n+-------------------------MENÚ DE OPERACIONES-------------------------+")
-        print(f"| Bienvenido/a | Usuario: {cliente_actual["Usuario"]} | DNI: {cliente_actual["dni_actual"]}")
-        print("+---------------------------------------------------------------------+")
-        print("| 1. Crear una cuenta en pesos (ARS)                                  |")
-        print("| 2. Depositar pesos (ARS)                                            |")
-        print("| 3. Consultar saldo en pesos (ARS)                                   |")
-        print("| 4. Crear una cuenta en dólares (USD)                                |")
-        print("| 5. Depositar dólares (USD)                                          |")
-        print("| 6. Consultar saldo en dólares (USD)                                 |")
-        print("| 7. Transferir entre sus cuentas (ARS <-> USD)                       |")
-        print("| 8. Salir                                                            |")
-        print("+---------------------------------------------------------------------+")
-
-        try:
-            opcionCuentas = int(input("Ingrese un número del 1 al 8 según la operación que desee realizar: "))
-        except ValueError:
-            print("Opción inválida, ingrese solo números.")
-            time.sleep(1.5)
-            continue
-
-        if opcionCuentas == 1:
-            crearCuenta(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
-
-        elif opcionCuentas == 2:
-            if "Cuenta en pesos" in cliente_actual:
-                try:
-                    monto = float(input("Ingrese el monto a depositar en pesos: "))
-                    depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
-                except ValueError:
-                    print("Monto inválido. Ingrese un valor numérico.")
-                    pausar_y_volver()
-            else:
-                limpiarPantalla()
-                print("No posee una Cuenta en pesos. Debe crearla primero para depositar dinero.")
-                pausar_y_volver()
-
-        elif opcionCuentas == 3:
-            consultarSaldo(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
-
-        elif opcionCuentas == 4:
-            crearCuenta(listaClientes, dni_actual, "Cuenta en dólares", "USD")
-
-        elif opcionCuentas == 5:
-            if "Cuenta en dólares" in cliente_actual:
-                try:
-                    monto = float(input("Ingrese el monto a depositar en dólares: "))
-                    depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
-                except ValueError:
-                    print("Monto inválido. Ingrese un valor numérico.")
-                    pausar_y_volver()
-            else:
-                limpiarPantalla()
-                print("No posee una Cuenta en dólares. Debe crearla primero para depositar dinero.")
-                pausar_y_volver()
-        
-
-        elif opcionCuentas == 6:
-            consultarSaldo(listaClientes, dni_actual, "Cuenta en dólares", "USD")
-
-        elif opcionCuentas == 7:
-            try:
-                monto = float(input("Ingrese el monto a transferir: "))
-
-                print("\nSeleccione tipo de transferencia:")
-                print("1. Pesos (ARS) -> Dólares (USD)")
-                print("2. Dólares (USD) -> Pesos (ARS)")
-                tipo = int(input("Opción: "))
-
-                if tipo == 1:
-                    transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
-                elif tipo == 2:
-                    transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
-                else:
-                    print("Opción de transferencia inválida.")
-                    pausar_y_volver()
-            except ValueError:
-                print("Monto/Opción inválida. Ingrese un valor numérico.")
-                pausar_y_volver()
-
-
-        elif opcionCuentas == 8:
-            print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
-            continuarOperaciones = False
-
+    elif opcionMain == 2:
+        nuevoCliente = registrarUsuario(listaClientes)
+        if nuevoCliente is not None:
+            sumarUsuarioALaBD(nuevoCliente, listaClientes)
+            cliente_actual = nuevoCliente
+            print("Cuenta creada e iniciada sesión automáticamente.")
+            mostrar_menu = True
         else:
-            print("Opción inválida en el menú de operaciones.")
-            time.sleep(1.5)
+            print("Finalizando... Inicie sesión en el próximo intento.")
+    else:
+        print("Opción inválida en el menú principal.")
+        time.sleep(1.5)
+
+
+    if mostrar_menu and cliente_actual:
+        dni_actual = cliente_actual["dni_actual"]
+        continuarOperaciones = True
+        while continuarOperaciones:
+            limpiarPantalla()
+            print("\n+-------------------------MENÚ DE OPERACIONES-------------------------+")
+            print(f"| Bienvenido/a | Usuario: {cliente_actual["Usuario"]} | DNI: {cliente_actual["dni_actual"]}")
+            print("+---------------------------------------------------------------------+")
+            print("| 1. Crear una cuenta en pesos (ARS)                                  |")
+            print("| 2. Depositar pesos (ARS)                                            |")
+            print("| 3. Consultar saldo en pesos (ARS)                                   |")
+            print("| 4. Crear una cuenta en dólares (USD)                                |")
+            print("| 5. Depositar dólares (USD)                                          |")
+            print("| 6. Consultar saldo en dólares (USD)                                 |")
+            print("| 7. Transferir entre sus cuentas (ARS <-> USD)                       |")
+            print("| 8. Salir                                                            |")
+            print("+---------------------------------------------------------------------+")
+
+            try:
+                opcionCuentas = int(input("Ingrese un número del 1 al 8 según la operación que desee realizar: "))
+            except ValueError:
+                print("Opción inválida, ingrese solo números.")
+                time.sleep(1.5)
+                continue
+
+            if opcionCuentas == 1:
+                crearCuenta(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
+
+            elif opcionCuentas == 2:
+                if "Cuenta en pesos" in cliente_actual:
+                    try:
+                        monto = float(input("Ingrese el monto a depositar en pesos: "))
+                        depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
+                    except ValueError:
+                        print("Monto inválido. Ingrese un valor numérico.")
+                        pausar_y_volver()
+                else:
+                    limpiarPantalla()
+                    print("No posee una Cuenta en pesos. Debe crearla primero para depositar dinero.")
+                    pausar_y_volver()
+
+            elif opcionCuentas == 3:
+                consultarSaldo(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
+
+            elif opcionCuentas == 4:
+                crearCuenta(listaClientes, dni_actual, "Cuenta en dólares", "USD")
+
+            elif opcionCuentas == 5:
+                if "Cuenta en dólares" in cliente_actual:
+                    try:
+                        monto = float(input("Ingrese el monto a depositar en dólares: "))
+                        depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
+                    except ValueError:
+                        print("Monto inválido. Ingrese un valor numérico.")
+                        pausar_y_volver()
+                else:
+                    limpiarPantalla()
+                    print("No posee una Cuenta en dólares. Debe crearla primero para depositar dinero.")
+                    pausar_y_volver()
+            
+
+            elif opcionCuentas == 6:
+                consultarSaldo(listaClientes, dni_actual, "Cuenta en dólares", "USD")
+
+            elif opcionCuentas == 7:
+                try:
+                    monto = float(input("Ingrese el monto a transferir: "))
+
+                    print("\nSeleccione tipo de transferencia:")
+                    print("1. Pesos (ARS) -> Dólares (USD)")
+                    print("2. Dólares (USD) -> Pesos (ARS)")
+                    tipo = int(input("Opción: "))
+
+                    if tipo == 1:
+                        transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
+                    elif tipo == 2:
+                        transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
+                    else:
+                        print("Opción de transferencia inválida.")
+                        pausar_y_volver()
+                except ValueError:
+                    print("Monto/Opción inválida. Ingrese un valor numérico.")
+                    pausar_y_volver()
+
+
+            elif opcionCuentas == 8:
+                print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
+                continuarOperaciones = False
+
+            else:
+                print("Opción inválida en el menú de operaciones.")
+                time.sleep(1.5)
+
+main()
