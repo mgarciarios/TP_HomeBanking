@@ -383,7 +383,8 @@ def main():
             print("| 5. Depositar dólares (USD)                                          |")
             print("| 6. Consultar saldo en dólares (USD)                                 |")
             print("| 7. Transferir entre sus cuentas (ARS <-> USD)                       |")
-            print("| 8. Salir                                                            |")
+            print("| 8. Consultar movimientos del sistema                                |")
+            print("| 9. Salir                                                            |")
             print("+---------------------------------------------------------------------+")
 
             try:
@@ -465,6 +466,23 @@ def main():
 
 
             elif opcionCuentas == 8:
+                try:
+                    with open("operaciones.csv", "r", encoding="utf-8") as archivo:
+                        print(f"\nMovimientos del usuario {cliente_actual['Usuario']}:")
+                        encontrados = False
+                        for linea in archivo:
+                            if cliente_actual['Usuario'] in linea:
+                                print(linea.strip())
+                                encontrados = True
+                        if not encontrados:
+                            print("No se encontraron movimientos para este usuario.")
+                except FileNotFoundError:
+                    print("No hay operaciones registradas todavía.")
+                
+                pausar_y_volver()
+
+
+            elif opcionCuentas == 9:
                 print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
                 registrarOperacion(cliente_actual["Usuario"], "Cierre de sesion")
                 guardarClientes(listaClientes)
