@@ -328,6 +328,103 @@ def registrarOperacion(usuario, tipo_operacion, archivo="operaciones.csv"):
     with open(archivo, "a", encoding="UTF8") as f:
         f.write(tipo_operacion + ";" + usuario + ";" + fecha_hora + "\n")
 
+def verRegistros(listaClientes):
+    """
+    Muestra todos los registros de los clientes: nombre, DNI y saldos de sus cuentas.
+    Solo para revisión o administración.
+    """
+    limpiarPantalla()
+    print("=== REGISTROS DE CLIENTES ===")
+    if not listaClientes:
+        print("No hay clientes registrados.")
+    else:
+        for cliente in listaClientes:
+            print("\n-----------------------------")
+            print(f"Usuario: {cliente.get('Usuario', 'No definido')}")
+            print(f"DNI: {cliente.get('dni_actual', 'No definido')}")
+            if "Cuenta en pesos" in cliente:
+                print(f"Cuenta en pesos: {cliente['Cuenta en pesos']['Saldo']:.2f} ARS")
+            if "Cuenta en dólares" in cliente:
+                print(f"Cuenta en dólares: {cliente['Cuenta en dólares']['Saldo']:.2f} USD")
+            if "SUBE" in cliente:
+                print(f"Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
+    print("\n-----------------------------")
+    pausar_y_volver()
+
+
+def cargarSube(listaClientes, dni_actual, monto):
+    """
+    Carga saldo en la SUBE del cliente, debitando el monto desde la cuenta en pesos.
+    """
+    cliente = None
+    for c in listaClientes:
+        if c["dni_actual"] == dni_actual:
+            cliente = c
+
+    limpiarPantalla()
+    if cliente is None:
+        print("Cliente no encontrado.")
+        pausar_y_volver()
+        return
+
+    if "Cuenta en pesos" not in cliente:
+        print("Debe tener una cuenta en pesos para cargar la SUBE.")
+        pausar_y_volver()
+        return
+
+    # Aca vamos a cerar la SUBE en caso de no tenerla
+    if "SUBE" not in cliente:
+        cliente["SUBE"] = {
+            "Saldo": 0.0,
+            "Número SUBE": str(random.randint(1000,9999)) + "-" + str(random.randint(1000,9999))
+        }
+
+    if cliente["Cuenta en pesos"]["Saldo"] < monto:
+        print("Saldo insuficiente en la cuenta en pesos.")
+        pausar_y_volver()
+        return
+
+    cliente["Cuenta en pesos"]["Saldo"] -= monto
+    cliente["SUBE"]["Saldo"] += monto
+
+    print(f"Se cargaron {monto:.2f} ARS a la SUBE.")
+    print(f"Saldo actual SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
+    registrarOperacion(cliente["Usuario"], f"Carga SUBE {monto:.2f} ARS")
+    guardarClientes(listaClientes)
+    pausar_y_volver()
+
+def extraerDinero(listaClientes, dni_actual, monto, tipoCuenta, moneda):
+    """
+    Permite retirar dinero de una cuenta (en pesos o dólares).
+    """
+    cliente = None
+    for i in listaClientes:
+        if i["dni_actual"] == dni_actual:
+            cliente = i
+
+    limpiarPantalla()
+    if cliente is None:
+        print("Cliente no encontrado.")
+        pausar_y_volver()
+        return
+
+    if tipoCuenta not in cliente:
+        print(f"No posee una {tipoCuenta}.")
+        pausar_y_volver()
+        return
+
+    if cliente[tipoCuenta]["Saldo"] < monto:
+        print("Saldo insuficiente.")
+        pausar_y_volver()
+        return
+
+    cliente[tipoCuenta]["Saldo"] -= monto
+    print(f"Extracción exitosa. Saldo restante: {cliente[tipoCuenta]['Saldo']:.2f} {moneda}")
+    registrarOperacion(cliente["Usuario"], f"Extracción de {monto:.2f} {moneda}")
+    guardarClientes(listaClientes)
+    pausar_y_volver()
+
+
 
 
 #MAIN
@@ -384,7 +481,10 @@ def main():
             print("| 6. Consultar saldo en dólares (USD)                                 |")
             print("| 7. Transferir entre sus cuentas (ARS <-> USD)                       |")
             print("| 8. Consultar movimientos del sistema                                |")
-            print("| 9. Salir                                                            |")
+            print("| 9. Extraer dinero                                                   |")
+            print("| 10. Cargar SUBE                                                      |")
+            print("| 11. Ver registros de clientes                                        |")
+            print("| 12. Salir                                                            |")
             print("+---------------------------------------------------------------------+")
 
             try:
@@ -481,8 +581,26 @@ def main():
                 
                 pausar_y_volver()
 
-
             elif opcionCuentas == 9:
+                DNI = int(input("Ingrese su DNI: "))
+                tipo = int(input("Seleccione cuenta: 1-Pesos / 2-Dólares: "))
+                monto = float(input("Ingrese el monto a extraer: "))
+                if tipo == 1:
+                    extraerDinero(listaClientes, DNI, monto, "Cuenta en pesos", "ARS")
+                elif tipo == 2:
+                    extraerDinero(listaClientes, DNI, monto, "Cuenta en dólares", "USD")
+                else:
+                    print("Opción inválida.") 
+
+            elif opcionCuentas == 10:
+                DNI = int(input("Ingrese su DNI: "))
+                monto = float(input("Ingrese el monto a cargar en la SUBE: "))
+                cargarSube(listaClientes, DNI, monto)   
+
+            elif opcionCuentas == 11:
+                verRegistros(listaClientes)
+
+            elif opcionCuentas == 12:
                 print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
                 registrarOperacion(cliente_actual["Usuario"], "Cierre de sesion")
                 guardarClientes(listaClientes)
