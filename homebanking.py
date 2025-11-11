@@ -332,7 +332,7 @@ def registrarOperacion(usuario, tipo_operacion, archivo="operaciones.csv"):
 
 #MAIN
 def main():
-    listaClientes = []
+    listaClientes = cargarClientes()
     mostrar_menu = False 
     cliente_actual = None
 
