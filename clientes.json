@@ -20,11 +20,15 @@
         "Usuario": "ea",
         "Contraseña": "Enzo1234",
         "Cuenta en pesos": {
-            "Saldo": 0.0,
+            "Saldo": 10000.0,
             "Datos": [
                 "4192762040142492400889",
                 "ea.bank.pesos"
             ]
+        },
+        "SUBE": {
+            "Saldo": 0.0,
+            "Número SUBE": "2196-4990"
         }
     }
 ]

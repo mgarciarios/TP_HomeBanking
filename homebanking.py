@@ -9,8 +9,10 @@ from persistencia import guardarClientes, cargarClientes
 
 def limpiarPantalla():
     """
-    Función estética para limpiar la terminal y mejorar la visualización.
-    La primera condición es para sistemas Windows ('nt') y la segunda para MacOs y Linux.
+    Limpia la consola según el sistema operativo (Windows o Unix-like).
+
+    Args:
+        None
     """
     if os.name == 'nt':
         os.system('cls')
@@ -18,25 +20,25 @@ def limpiarPantalla():
         os.system('clear')
 
 def pausar_y_volver():
-    """Pausa la ejecución y pide confirmación para volver al menú principal."""
+    """
+    Pausa hasta que el usuario presione ENTER y luego limpia la pantalla.
+
+    Args:
+        None
+    """
     input("\nPresione ENTER para volver al menú de operaciones...")
     limpiarPantalla()
 
 def registrarUsuario(listaClientes):
-    
     """
-    Registra un nuevo cliente validando dni_actual, unicidad de usuario y requisitos de contraseña.
-
-    Solicita al usuario ingresar su dni_actual. Si ya existe, termina el proceso.
-    Si es nuevo, solicita un nombre de usuario (verifica que no esté repetido)
-    y una contraseña (entre 8 y 12 caracteres, con confirmación).
+    Registra un cliente nuevo validando que el DNI no exista, que el usuario no se repita
+    y que la contraseña cumpla con los requisitos básicos.
 
     Args:
-        listaClientes (list): Lista actual de clientes (diccionarios) para verificar duplicados.
+        listaClientes (list): Lista de clientes persistidos, cada uno como diccionario.
 
     Returns:
-        dict: Un diccionario con las claves dni_actual, Usuario y Contraseña del nuevo cliente si el registro es exitoso.
-        None: Si el dni_actual ya estaba registrado.
+        dict | None: El cliente creado si todo salió bien; None si el DNI ya estaba registrado.
     """ 
 
     nuevoCliente = {}
@@ -103,17 +105,15 @@ def registrarUsuario(listaClientes):
                     print("Las contraseñas no coinciden. Intente de nuevo.")
                     time.sleep(1.5)
 
-
 def iniciarSesion(lista):
     """
-    Verifica dni_actual, usuario y contraseña para iniciar sesión con reintentos.
+    Inicia sesión pidiendo DNI, usuario y contraseña. Permite reintentos.
 
     Args:
-        lista (list): Una lista de diccionarios, donde cada diccionario representa a un cliente y debe contener las claves dni_actual, Usuario, y Contraseña.
+        lista (list): Lista de clientes (diccionarios) con 'dni_actual', 'Usuario' y 'Contraseña'.
 
     Returns:
-        bool: True si el inicio de sesión es exitoso, False si el usuario
-              decide no reintentar después de un fallo.
+        dict | None: El cliente autenticado si los datos son correctos; None si el usuario decide salir.
     """
 
     while True:
@@ -146,20 +146,33 @@ def iniciarSesion(lista):
             print("Ha salido del sistema exitosamente.")
             return None
 
-
 def sumarUsuarioALaBD(cliente, listaClientes):
     """
-    Agrega un diccionario de cliente a una lista si no existe previamente.
+    Agrega el cliente a la lista si aún no está presente.
+
+    Args:
+        cliente (dict): Diccionario con los datos del cliente.
+        listaClientes (list): Colección donde se almacenan los clientes.
+
+    Returns:
+        list: La lista actualizada.
     """
     if cliente not in listaClientes:
         listaClientes.append(cliente)
     return listaClientes
 
-
 def crearCuenta(listaClientes, dni_actual, tipoCuenta, moneda):
-
     """
-    Intenta crear una nueva cuenta con saldo 0.0 para un cliente existente.
+    Crea una cuenta para el cliente si no la tiene ya, con saldo inicial 0.0.
+
+    Args:
+        listaClientes (list): Lista de clientes.
+        dni_actual (int): DNI del titular de la cuenta.
+        tipoCuenta (str): Nombre de la cuenta a crear (ej.: "Cuenta en pesos").
+        moneda (str): Código de moneda para mostrar en pantalla (ej.: "ARS", "USD").
+
+    Returns:
+        dict | None: El cliente actualizado si se creó; None si no se encontró el cliente.
     """    
     obtener_moneda = lambda tipo_cuenta: tipo_cuenta.split(' ')[2].replace('dólares', 'dolares')
 
@@ -195,7 +208,14 @@ def crearCuenta(listaClientes, dni_actual, tipoCuenta, moneda):
 
 def depositar(listaClientes, dni_actual, monto, tipoCuenta, moneda):
     """
-    Suma un monto específico al saldo de una cuenta de cliente existente.
+    Deposita un monto en la cuenta indicada del cliente.
+
+    Args:
+        listaClientes (list): Lista de clientes.
+        dni_actual (int): DNI del titular.
+        monto (float): Importe a acreditar (debe ser positivo).
+        tipoCuenta (str): Cuenta destino del depósito.
+        moneda (str): Moneda mostrada en pantalla.
     """
     clienteEncontrado = None
     for cliente in listaClientes:
@@ -223,10 +243,15 @@ def depositar(listaClientes, dni_actual, monto, tipoCuenta, moneda):
     
     pausar_y_volver()
 
-
 def consultarSaldo(listaClientes, dni_actual, tipoCuenta, moneda):
     """
-    Muestra el saldo de una cuenta específica de un cliente si existe.
+    Muestra el saldo actual de una cuenta del cliente.
+
+    Args:
+        listaClientes (list): Lista de clientes.
+        dni_actual (int): DNI del titular.
+        tipoCuenta (str): Cuenta a consultar.
+        moneda (str): Moneda para la impresión del saldo.
     """
 
     clienteEncontrado = None
@@ -250,10 +275,17 @@ def consultarSaldo(listaClientes, dni_actual, tipoCuenta, moneda):
     
     pausar_y_volver()
 
-
 def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, tasa=1000):
     """
-    Transfiere un monto entre las cuentas en pesos y dólares de un cliente.
+    Pasa fondos entre cuentas del mismo cliente (ARS ↔ USD), aplicando conversión.
+
+    Args:
+        listaClientes (list): Lista de clientes.
+        dni_actual (int): DNI del titular.
+        origen (str): Cuenta desde donde se debita.
+        destino (str): Cuenta a la que se acredita.
+        monto (float): Importe a transferir (debe ser positivo).
+        tasa (float): Tipo de cambio ARS por USD usado en la conversión.
     """
 
     usd_a_ars = lambda usd: usd * tasa
@@ -313,11 +345,12 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
 
 def registrarOperacion(usuario, tipo_operacion, archivo="operaciones.csv"):
     """
-    Registra una operación realizada por un cliente en un archivo CSV.
-    Si el archivo no existe, lo crea y escribe el encabezado. 
-    Cada registro contiene: tipo_operacion;usuario;fecha_hora
-       Args: usuario, tipo_operacion, archivo
-       Returns: operaciones.csv con tipo_operacion; usuario; fecha_hora
+    Anota una operación en un archivo CSV (crea el encabezado si el archivo no existe).
+
+    Args:
+        usuario (str): Nombre de usuario asociado a la operación.
+        tipo_operacion (str): Descripción breve de la operación.
+        archivo (str): Ruta del CSV donde se guardan los movimientos (por defecto, 'operaciones.csv').
     """
     if not os.path.exists(archivo):
         with open(archivo, "w", encoding="UTF8") as f:
@@ -328,33 +361,74 @@ def registrarOperacion(usuario, tipo_operacion, archivo="operaciones.csv"):
     with open(archivo, "a", encoding="UTF8") as f:
         f.write(tipo_operacion + ";" + usuario + ";" + fecha_hora + "\n")
 
-def verRegistros(listaClientes):
+def obtener_movimientos_usuario(usuario, archivo="operaciones.csv"):
     """
-    Muestra todos los registros de los clientes: nombre, DNI y saldos de sus cuentas.
-    Solo para revisión o administración.
+    Devuelve todas las líneas del CSV que corresponden exactamente al usuario indicado.
+
+    Args:
+        usuario (str): Usuario a filtrar.
+        archivo (str): Ruta del archivo de operaciones.
+
+    Returns:
+        list[str]: Líneas ya formateadas, sin el encabezado.
+    """
+    filas = []
+    if not os.path.exists(archivo):
+        return filas
+    with open(archivo, "r", encoding="utf-8") as f:
+        primera = True
+        for linea in f:
+            if primera:
+                primera = False
+                continue
+            partes = linea.rstrip("\n").split(";")
+            if len(partes) >= 3 and partes[1] == usuario:
+                filas.append(linea.strip())
+    return filas
+
+def historial_sube(listaClientes, dni_actual):
+    """
+    Muestra únicamente los datos y saldos del cliente autenticado.
+
+    Args:
+        listaClientes (list): Lista de clientes en memoria.
+        dni_actual (int): DNI del cliente autenticado.
     """
     limpiarPantalla()
-    print("=== REGISTROS DE CLIENTES ===")
-    if not listaClientes:
-        print("No hay clientes registrados.")
-    else:
-        for cliente in listaClientes:
-            print("\n-----------------------------")
-            print(f"Usuario: {cliente.get('Usuario', 'No definido')}")
-            print(f"DNI: {cliente.get('dni_actual', 'No definido')}")
-            if "Cuenta en pesos" in cliente:
-                print(f"Cuenta en pesos: {cliente['Cuenta en pesos']['Saldo']:.2f} ARS")
-            if "Cuenta en dólares" in cliente:
-                print(f"Cuenta en dólares: {cliente['Cuenta en dólares']['Saldo']:.2f} USD")
-            if "SUBE" in cliente:
-                print(f"Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
+    cliente = None
+    for c in listaClientes:
+        if c.get("dni_actual") == dni_actual:
+            cliente = c
+            break
+
+    print("=== HISTORIAL CARGA SUBE ===")
+    if not cliente:
+        print("No se encontró el cliente en memoria.")
+        pausar_y_volver()
+        return
+
+    print("\n-----------------------------")
+    print(f"Usuario: {cliente.get('Usuario', 'No definido')}")
+    print(f"DNI: {cliente.get('dni_actual', 'No definido')}")
+    if "Cuenta en pesos" in cliente:
+        print(f"Cuenta en pesos: {cliente['Cuenta en pesos']['Saldo']:.2f} ARS")
+    if "Cuenta en dólares" in cliente:
+        print(f"Cuenta en dólares: {cliente['Cuenta en dólares']['Saldo']:.2f} USD")
+    if "SUBE" in cliente:
+        print(f"Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
     print("\n-----------------------------")
     pausar_y_volver()
 
 
 def cargarSube(listaClientes, dni_actual, monto):
     """
-    Carga saldo en la SUBE del cliente, debitando el monto desde la cuenta en pesos.
+    Acredita saldo en la SUBE del cliente, descontando de su cuenta en pesos.
+    Si no existe la SUBE, la crea con un número simple.
+
+    Args:
+        listaClientes (list): Lista de clientes.
+        dni_actual (int): DNI del titular.
+        monto (float): Monto a cargar (en ARS).
     """
     cliente = None
     for c in listaClientes:
@@ -372,7 +446,6 @@ def cargarSube(listaClientes, dni_actual, monto):
         pausar_y_volver()
         return
 
-    # Aca vamos a cerar la SUBE en caso de no tenerla
     if "SUBE" not in cliente:
         cliente["SUBE"] = {
             "Saldo": 0.0,
@@ -395,7 +468,14 @@ def cargarSube(listaClientes, dni_actual, monto):
 
 def extraerDinero(listaClientes, dni_actual, monto, tipoCuenta, moneda):
     """
-    Permite retirar dinero de una cuenta (en pesos o dólares).
+    Realiza una extracción desde una cuenta del cliente si hay saldo suficiente.
+
+    Args:
+        listaClientes (list): Lista de clientes.
+        dni_actual (int): DNI del titular.
+        monto (float): Importe a retirar.
+        tipoCuenta (str): Cuenta desde la cual se debita.
+        moneda (str): Moneda para mostrar el resultado.
     """
     cliente = None
     for i in listaClientes:
@@ -424,11 +504,15 @@ def extraerDinero(listaClientes, dni_actual, monto, tipoCuenta, moneda):
     guardarClientes(listaClientes)
     pausar_y_volver()
 
-
-
-
 #MAIN
 def main():
+    """
+    Entrada principal: muestra el menú inicial, gestiona el alta o login
+    y luego habilita el menú de operaciones mientras dure la sesión.
+
+    Args:
+        None
+    """
     listaClientes = cargarClientes()
     mostrar_menu = False 
     cliente_actual = None
@@ -464,7 +548,6 @@ def main():
         print("Opción inválida en el menú principal.")
         time.sleep(1.5)
 
-
     if mostrar_menu and cliente_actual:
         dni_actual = cliente_actual["dni_actual"]
         continuarOperaciones = True
@@ -482,9 +565,9 @@ def main():
             print("| 7. Transferir entre sus cuentas (ARS <-> USD)                       |")
             print("| 8. Consultar movimientos del sistema                                |")
             print("| 9. Extraer dinero                                                   |")
-            print("| 10. Cargar SUBE                                                      |")
-            print("| 11. Ver registros de clientes                                        |")
-            print("| 12. Salir                                                            |")
+            print("| 10. Cargar SUBE                                                     |")
+            print("| 11. Historial carga sube                                            |")
+            print("| 12. Salir                                                           |")
             print("+---------------------------------------------------------------------+")
 
             try:
@@ -564,21 +647,14 @@ def main():
                     print("Monto/Opción inválida. Ingrese un valor numérico.")
                     pausar_y_volver()
 
-
             elif opcionCuentas == 8:
-                try:
-                    with open("operaciones.csv", "r", encoding="utf-8") as archivo:
-                        print(f"\nMovimientos del usuario {cliente_actual['Usuario']}:")
-                        encontrados = False
-                        for linea in archivo:
-                            if cliente_actual['Usuario'] in linea:
-                                print(linea.strip())
-                                encontrados = True
-                        if not encontrados:
-                            print("No se encontraron movimientos para este usuario.")
-                except FileNotFoundError:
-                    print("No hay operaciones registradas todavía.")
-                
+                movimientos = obtener_movimientos_usuario(cliente_actual["Usuario"], "operaciones.csv")
+                print(f"\nMovimientos del usuario {cliente_actual['Usuario']}:")
+                if movimientos:
+                    for linea in movimientos:
+                        print(linea)
+                else:
+                    print("No se encontraron movimientos para este usuario.")
                 pausar_y_volver()
 
             elif opcionCuentas == 9:
@@ -598,7 +674,8 @@ def main():
                 cargarSube(listaClientes, DNI, monto)   
 
             elif opcionCuentas == 11:
-                verRegistros(listaClientes)
+                historial_sube(listaClientes, dni_actual)
+
 
             elif opcionCuentas == 12:
                 print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
