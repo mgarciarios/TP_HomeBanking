@@ -16,18 +16,15 @@
         }
     },
     {
-        "dni_actual": 98765432,
-        "Usuario": "ui",
-        "Contraseña": "12345678L"
-    },
-    {
-        "dni_actual": 147258,
-        "Usuario": "op",
-        "Contraseña": "14725896P"
-    },
-    {
-        "dni_actual": 11111111,
-        "Usuario": "tr",
-        "Contraseña": "12345678J"
+        "dni_actual": 43243661,
+        "Usuario": "ea",
+        "Contraseña": "Enzo1234",
+        "Cuenta en pesos": {
+            "Saldo": 0.0,
+            "Datos": [
+                "4192762040142492400889",
+                "ea.bank.pesos"
+            ]
+        }
     }
 ]
