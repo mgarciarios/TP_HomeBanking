@@ -122,41 +122,41 @@ def iniciarSesion(lista):
     Returns:
         dict | None: El cliente autenticado si los datos son correctos; None si el usuario decide salir.
     """
+def iniciarSesion(lista):
+    """
+    Inicia sesión pidiendo DNI, usuario y contraseña. Permite reintentos.
+
+    Args:
+        lista (list): Lista de clientes (diccionarios) con 'dni_actual', 'Usuario' y 'Contraseña'.
+
+    Returns:
+        dict | None: El cliente autenticado si los datos son correctos; None si el usuario decide salir.
+    """
     while True:
         limpiarPantalla()
         dni_actual = pedir_dni()
 
-        coincidencias = list(filter(lambda c: c.get("dni_actual") == dni_actual, lista))
-        cliente = coincidencias[0] if coincidencias else None
+        cliente = next((c for c in lista if c.get("dni_actual") == dni_actual), None)
 
         if cliente is None:
             print("DNI no encontrado.")
         else:
-            limpiarPantalla()
             usuario = input("Ingrese su usuario: ")
-
-            if cliente.get("Usuario") == usuario:
-                limpiarPantalla()
-                usuario = input("Ingrese su usuario: ")
-                
-                if cliente["Usuario"] == usuario:
-                    limpiarPantalla()
-                    contraseña = input("Ingrese su contraseña: ")
-                    
-                    if cliente["Contraseña"] == contraseña:
-                        print("Ingreso exitoso. Bienvenido/a.")
-                        return cliente 
-                    else:
-                        break
+            if usuario == cliente.get("Usuario"):
+                contraseña = input("Ingrese su contraseña: ")
+                if contraseña == cliente.get("Contraseña"):
+                    print("Ingreso exitoso. Bienvenido/a.")
+                    return cliente
                 else:
-                    break 
-        
-        print("Algún dato se ingresó de manera incorrecta. DNI, Usuario o Contraseña no coinciden.")
-        
-        continuar = input("¿Desea intentar ingresar nuevamente? (S/N): ").upper()
+                    print("Contraseña incorrecta.")
+            else:
+                print("Usuario incorrecto.")
+
+        continuar = input("¿Desea intentar ingresar nuevamente? (S/N): ").strip().upper()
         if continuar == 'N':
             print("Ha salido del sistema exitosamente.")
             return None
+
 
 def sumarUsuarioALaBD(cliente, listaClientes):
     """
