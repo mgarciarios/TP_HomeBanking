@@ -319,41 +319,6 @@ def registrarOperacion(usuario, tipo_operacion, archivo="operaciones.csv"):
        Args: usuario, tipo_operacion, archivo
        Returns: operaciones.csv con tipo_operacion; usuario; fecha_hora
     """
-
-listaClientes = cargarClientes()
-mostrar_menu = False 
-cliente_actual = None
-
-limpiarPantalla()
-print("+---------------------------------------------------------------------+")
-print("| Bienvenido/a al HomeBanking. Elija una opción para comenzar.        |")
-print("+---------------------------------------------------------------------+")
-
-try:
-    opcionMain = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
-except ValueError:
-    print("Ingresó un valor no numérico.")
-    time.sleep(1.5)
-    exit()
-
-if opcionMain == 1:
-    cliente_actual = iniciarSesion(listaClientes)
-
-    if cliente_actual is not None:
-        mostrar_menu = True
-
-elif opcionMain == 2:
-    nuevoCliente = registrarUsuario(listaClientes)
-    if nuevoCliente is not None:
-        sumarUsuarioALaBD(nuevoCliente, listaClientes)
-        cliente_actual = nuevoCliente
-        print("Cuenta creada e iniciada sesión automáticamente.")
-        mostrar_menu = True
-    else:
-        print("Finalizando... Inicie sesión en el próximo intento.")
-else:
-    print("Opción inválida en el menú principal.")
-    time.sleep(1.5)
     if not os.path.exists(archivo):
         with open(archivo, "w", encoding="UTF8") as f:
             f.write("Tipo de Operación;Usuario;Fecha y Hora\n")
@@ -363,21 +328,11 @@ else:
     with open(archivo, "a", encoding="UTF8") as f:
         f.write(tipo_operacion + ";" + usuario + ";" + fecha_hora + "\n")
 
-        if opcionCuentas == 1:
-            crearCuenta(listaClientes, dni_actual, "Cuenta en pesos", "ARS")
-            guardarClientes(listaClientes)
 
-        elif opcionCuentas == 2:
-            if "Cuenta en pesos" in cliente_actual:
-                try:
-                    monto = float(input("Ingrese el monto a depositar en pesos: "))
-                    depositar(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
-                    guardarClientes(listaClientes)
-                except ValueError:
-                    print("Monto inválido. Ingrese un valor numérico.")
+
 #MAIN
 def main():
-    listaClientes = []
+    listaClientes = cargarClientes()
     mostrar_menu = False 
     cliente_actual = None
 
@@ -462,6 +417,8 @@ def main():
 
             elif opcionCuentas == 4:
                 crearCuenta(listaClientes, dni_actual, "Cuenta en dólares", "USD")
+                registrarOperacion(cliente_actual["Usuario"], "Crear cuenta en dolares")
+                guardarClientes(listaClientes)
 
             elif opcionCuentas == 5:
                 if "Cuenta en dólares" in cliente_actual:
@@ -477,10 +434,6 @@ def main():
                     print("No posee una Cuenta en dólares. Debe crearla primero para depositar dinero.")
                     pausar_y_volver()
             
-
-        elif opcionCuentas == 4:
-            crearCuenta(listaClientes, dni_actual, "Cuenta en dólares", "USD")
-            guardarClientes(listaClientes)
             elif opcionCuentas == 6:
                 consultarSaldo(listaClientes, dni_actual, "Cuenta en dólares", "USD")
                 registrarOperacion(cliente_actual["Usuario"], "Consultar saldo")
@@ -514,6 +467,7 @@ def main():
             elif opcionCuentas == 8:
                 print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
                 registrarOperacion(cliente_actual["Usuario"], "Cierre de sesion")
+                guardarClientes(listaClientes)
                 continuarOperaciones = False
 
                 print("\nSeleccione tipo de transferencia:")
@@ -530,17 +484,8 @@ def main():
                 else:
                     print("Opción de transferencia inválida.")
                     pausar_y_volver()
-            except ValueError:
-                print("Monto/Opción inválida. Ingrese un valor numérico.")
-                pausar_y_volver()
-
-
-        elif opcionCuentas == 8:
-            print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
-            guardarClientes(listaClientes)
-            continuarOperaciones = False
-            else:
-                print("Opción inválida en el menú de operaciones.")
-                time.sleep(1.5)
+        else:
+            print("Opción inválida en el menú de operaciones.")
+            time.sleep(1.5)
 
 main()
