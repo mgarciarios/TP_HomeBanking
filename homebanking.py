@@ -7,6 +7,14 @@ import time
 import json
 from persistencia import guardarClientes, cargarClientes
 
+def pedir_dni():
+    while True:
+        try:
+            return int(input("Ingrese su DNI sin puntos (ej: 12345678): "))
+        except ValueError:
+            print("DNI inválido. Solo números.")
+            time.sleep(1.0)
+
 def limpiarPantalla():
     """
     Limpia la consola según el sistema operativo (Windows o Unix-like).
@@ -45,7 +53,7 @@ def registrarUsuario(listaClientes):
 
     # dni_actual
     limpiarPantalla()
-    dni_actual = int(input("Ingrese su dni, sin puntos (ej: XXXXXXXX): "))
+    dni_actual = pedir_dni()
 
     for cliente in listaClientes:
         if cliente["dni_actual"] == dni_actual:
@@ -69,7 +77,6 @@ def registrarUsuario(listaClientes):
         
     nuevoCliente["Usuario"] = usuario
 
-    # Contraseña
     while True:
         limpiarPantalla()
         contraseña1 = input("Ingrese una contraseña (debe tener entre 8 y 12 caracteres, contener una mayúscula y un número): ")
@@ -115,15 +122,20 @@ def iniciarSesion(lista):
     Returns:
         dict | None: El cliente autenticado si los datos son correctos; None si el usuario decide salir.
     """
-
     while True:
         limpiarPantalla()
-        dni_actual = int(input("Ingrese su dni sin puntos (ej: XXXXXXXX): "))
-        dni_actual_encontrado = False
-        
-        for cliente in lista:
-            if cliente["dni_actual"] == dni_actual:
-                dni_actual_encontrado = True
+        dni_actual = pedir_dni()
+
+        coincidencias = list(filter(lambda c: c.get("dni_actual") == dni_actual, lista))
+        cliente = coincidencias[0] if coincidencias else None
+
+        if cliente is None:
+            print("DNI no encontrado.")
+        else:
+            limpiarPantalla()
+            usuario = input("Ingrese su usuario: ")
+
+            if cliente.get("Usuario") == usuario:
                 limpiarPantalla()
                 usuario = input("Ingrese su usuario: ")
                 
@@ -288,9 +300,11 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
         tasa (float): Tipo de cambio ARS por USD usado en la conversión.
     """
 
+    # conversiones
     usd_a_ars = lambda usd: usd * tasa
     ars_a_usd = lambda ars: ars / tasa
 
+    # buscar clientes
     cliente = None
     for c in listaClientes:
         if c.get("dni_actual") == dni_actual:
@@ -298,10 +312,12 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
     
     limpiarPantalla()
 
+
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
         return
+
 
     if origen not in cliente or "Saldo" not in cliente[origen]:
         print(f"La cuenta de origen {origen} no existe o no tiene saldo definido.")
@@ -325,6 +341,7 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
         pausar_y_volver()
         return
 
+    # para actualizar los saldos
     cliente[origen]["Saldo"] = saldo_origen - monto
 
     if origen == "Cuenta en pesos" and destino == "Cuenta en dólares":
@@ -338,7 +355,8 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
         print(f"Transferencia exitosa: Se debitaron {monto:.2f} USD y se acreditaron {monto_acreditado:.2f} ARS (Tasa: {tasa}).")
 
     else:
-        cliente[origen]["Saldo"] += monto
+
+        cliente[origen]["Saldo"] += monto 
         print("Transferencia no válida (origen y destino son el mismo tipo de cuenta).")
     
     pausar_y_volver()
