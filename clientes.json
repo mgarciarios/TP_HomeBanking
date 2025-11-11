@@ -14,5 +14,20 @@
             "Saldo": 5000.0,
             "Número SUBE": "7746-8252"
         }
+    },
+    {
+        "dni_actual": 98765432,
+        "Usuario": "ui",
+        "Contraseña": "12345678L"
+    },
+    {
+        "dni_actual": 147258,
+        "Usuario": "op",
+        "Contraseña": "14725896P"
+    },
+    {
+        "dni_actual": 11111111,
+        "Usuario": "tr",
+        "Contraseña": "12345678J"
     }
 ]

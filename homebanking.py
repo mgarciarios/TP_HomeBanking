@@ -488,7 +488,7 @@ def main():
             print("+---------------------------------------------------------------------+")
 
             try:
-                opcionCuentas = int(input("Ingrese un número del 1 al 8 según la operación que desee realizar: "))
+                opcionCuentas = int(input("Ingrese un número del 1 al 12 según la operación que desee realizar: "))
             except ValueError:
                 print("Opción inválida, ingrese solo números.")
                 time.sleep(1.5)
@@ -606,22 +606,8 @@ def main():
                 guardarClientes(listaClientes)
                 continuarOperaciones = False
 
-                print("\nSeleccione tipo de transferencia:")
-                print("1. Pesos (ARS) -> Dólares (USD)")
-                print("2. Dólares (USD) -> Pesos (ARS)")
-                tipo = int(input("Opción: "))
-
-                if tipo == 1:
-                    transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
-                    guardarClientes(listaClientes)
-                elif tipo == 2:
-                    transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
-                    guardarClientes(listaClientes)
-                else:
-                    print("Opción de transferencia inválida.")
-                    pausar_y_volver()
-        else:
-            print("Opción inválida en el menú de operaciones.")
-            time.sleep(1.5)
+            else:
+                print("Opción inválida en el menú de operaciones.")
+                time.sleep(1.5)
 
 main()
