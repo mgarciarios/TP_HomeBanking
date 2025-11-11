@@ -1,0 +1,18 @@
+[
+    {
+        "dni_actual": 12345678,
+        "Usuario": "nm",
+        "Contraseña": "12345678M",
+        "Cuenta en pesos": {
+            "Saldo": 8000.0,
+            "Datos": [
+                "6891009596442807267433",
+                "nm.bank.pesos"
+            ]
+        },
+        "SUBE": {
+            "Saldo": 5000.0,
+            "Número SUBE": "7746-8252"
+        }
+    }
+]
