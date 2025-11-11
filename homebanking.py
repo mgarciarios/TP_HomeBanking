@@ -5,6 +5,14 @@ import random
 import os
 import time
 
+def pedir_dni():
+    while True:
+        try:
+            return int(input("Ingrese su DNI sin puntos (ej: 12345678): "))
+        except ValueError:
+            print("DNI inválido. Solo números.")
+            time.sleep(1.0)
+
 def limpiarPantalla():
     """
     Función estética para limpiar la terminal y mejorar la visualización.
@@ -41,7 +49,7 @@ def registrarUsuario(listaClientes):
 
     # dni_actual
     limpiarPantalla()
-    dni_actual = int(input("Ingrese su dni, sin puntos (ej: XXXXXXXX): "))
+    dni_actual = pedir_dni()
 
     for cliente in listaClientes:
         if cliente["dni_actual"] == dni_actual:
@@ -65,7 +73,6 @@ def registrarUsuario(listaClientes):
         
     nuevoCliente["Usuario"] = usuario
 
-    # Contraseña
     while True:
         limpiarPantalla()
         contraseña1 = input("Ingrese una contraseña (debe tener entre 8 y 12 caracteres, contener una mayúscula y un número): ")
@@ -107,48 +114,44 @@ def iniciarSesion(lista):
     Verifica dni_actual, usuario y contraseña para iniciar sesión con reintentos.
 
     Args:
-        lista (list): Una lista de diccionarios, donde cada diccionario representa a un cliente y debe contener las claves dni_actual, Usuario, y Contraseña.
+        lista (list): Lista de dicts con claves: dni_actual, Usuario, Contraseña.
 
     Returns:
-        bool: True si el inicio de sesión es exitoso, False si el usuario
-              decide no reintentar después de un fallo.
+        dict | None: El diccionario del cliente si el login es exitoso; None si el usuario decide no reintentar.
     """
-
     while True:
         limpiarPantalla()
-        dni_actual = int(input("Ingrese su dni sin puntos (ej: XXXXXXXX): "))
-        dni_actual_encontrado = False
-        
-        for cliente in lista:
-            if cliente["dni_actual"] == dni_actual:
-                dni_actual_encontrado = True
+        dni_actual = pedir_dni()
+
+        coincidencias = list(filter(lambda c: c.get("dni_actual") == dni_actual, lista))
+        cliente = coincidencias[0] if coincidencias else None
+
+        if cliente is None:
+            print("DNI no encontrado.")
+        else:
+            limpiarPantalla()
+            usuario = input("Ingrese su usuario: ")
+
+            if cliente.get("Usuario") == usuario:
                 limpiarPantalla()
-                usuario = input("Ingrese su usuario: ")
-                
-                if cliente["Usuario"] == usuario:
-                    limpiarPantalla()
-                    contraseña = input("Ingrese su contraseña: ")
-                    
-                    if cliente["Contraseña"] == contraseña:
-                        print("Ingreso exitoso. Bienvenido/a.")
-                        return cliente  # <-- DEVUELVE EL CLIENTE
-                    else:
-                        break # Contraseña incorrecta, salimos del for
+                contraseña = input("Ingrese su contraseña: ")
+                if cliente.get("Contraseña") == contraseña:
+                    print("Ingreso exitoso. Bienvenido/a.")
+                    return cliente  
                 else:
-                    break # Usuario incorrecto, salimos del for
-        
-        print("Algún dato se ingresó de manera incorrecta. DNI, Usuario o Contraseña no coinciden.")
-        
-        continuar = input("¿Desea intentar ingresar nuevamente? (S/N): ").upper()
+                    print("Contraseña incorrecta.")
+            else:
+                print("Usuario incorrecto.")
+
+        continuar = input("¿Desea intentar ingresar nuevamente? (S/N): ").strip().upper()
         if continuar == 'N':
             print("Ha salido del sistema exitosamente.")
             return None
 
-
 def sumarUsuarioALaBD(cliente, listaClientes):
     """
     Agrega un diccionario de cliente a una lista si no existe previamente.
-    """2
+    """
     if cliente not in listaClientes:
         listaClientes.append(cliente)
     return listaClientes
@@ -255,11 +258,11 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
     Transfiere un monto entre las cuentas en pesos y dólares de un cliente.
     """
 
-    # Lambdas para conversión
+    # conversiones
     usd_a_ars = lambda usd: usd * tasa
     ars_a_usd = lambda ars: ars / tasa
 
-    # Buscar cliente
+    # buscar clientes
     cliente = None
     for c in listaClientes:
         if c.get("dni_actual") == dni_actual:
@@ -267,13 +270,13 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
     
     limpiarPantalla()
 
-    # Verificaciones
+
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
         return
 
-    # Usamos la estructura de cuentas moderna (ej: {"Cuenta en pesos": {"Saldo": 100...}} )
+
     if origen not in cliente or "Saldo" not in cliente[origen]:
         print(f"La cuenta de origen {origen} no existe o no tiene saldo definido.")
         pausar_y_volver()
@@ -296,7 +299,7 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
         pausar_y_volver()
         return
 
-    # Actualizar saldos
+    # para actualizar los saldos
     cliente[origen]["Saldo"] = saldo_origen - monto
 
     if origen == "Cuenta en pesos" and destino == "Cuenta en dólares":
@@ -310,48 +313,50 @@ def transferirEntreCuentas(listaClientes, dni_actual, origen, destino, monto, ta
         print(f"Transferencia exitosa: Se debitaron {monto:.2f} USD y se acreditaron {monto_acreditado:.2f} ARS (Tasa: {tasa}).")
 
     else:
-        # Caso cuentas iguales o tipo inválido
-        cliente[origen]["Saldo"] += monto # Revertir el débito
+
+        cliente[origen]["Saldo"] += monto 
         print("Transferencia no válida (origen y destino son el mismo tipo de cuenta).")
     
     pausar_y_volver()
 
-#MAIN
+
+def menu_inicio(listaClientes):
+    while True:
+        limpiarPantalla()
+        print("+---------------------------------------------------------------------+")
+        print("|   Bienvenido/a al HomeBanking. Elija una opción para comenzar.      |")
+        print("+---------------------------------------------------------------------+")
+        try:
+            opcionMain = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
+        except ValueError:
+            print("Ingresó un valor no numérico. Ingrese 1 o 2.")
+            time.sleep(1.5)
+            continue  # vuelve a pedir
+
+        if opcionMain == 1:
+            cliente_actual = iniciarSesion(listaClientes)
+            if cliente_actual is not None:
+                return cliente_actual  # éxito -> salimos
+            print("No se pudo iniciar sesión. Puede intentar nuevamente.")
+            time.sleep(1.5)
+
+        elif opcionMain == 2:
+            nuevoCliente = registrarUsuario(listaClientes)
+            if nuevoCliente is not None:
+                sumarUsuarioALaBD(nuevoCliente, listaClientes)
+                print("Cuenta creada e iniciada sesión automáticamente.")
+                time.sleep(1.5)
+                return nuevoCliente  # éxito -> salimos
+            print("El registro no se completó. Puede intentar nuevamente.")
+            time.sleep(1.5)
+
+        else:
+            print("Opción inválida. Ingrese 1 o 2.")
+            time.sleep(1.5)
 
 listaClientes = []
-mostrar_menu = False 
-cliente_actual = None
-
-limpiarPantalla()
-print("+---------------------------------------------------------------------+")
-print("| Bienvenido/a al HomeBanking. Elija una opción para comenzar.        |")
-print("+---------------------------------------------------------------------+")
-
-try:
-    opcionMain = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
-except ValueError:
-    print("Ingresó un valor no numérico.")
-    time.sleep(1.5)
-    exit()
-
-if opcionMain == 1:
-    cliente_actual = iniciarSesion(listaClientes)
-
-    if cliente_actual is not None:
-        mostrar_menu = True
-
-elif opcionMain == 2:
-    nuevoCliente = registrarUsuario(listaClientes)
-    if nuevoCliente is not None:
-        sumarUsuarioALaBD(nuevoCliente, listaClientes)
-        cliente_actual = nuevoCliente
-        print("Cuenta creada e iniciada sesión automáticamente.")
-        mostrar_menu = True
-    else:
-        print("Finalizando... Inicie sesión en el próximo intento.")
-else:
-    print("Opción inválida en el menú principal.")
-    time.sleep(1.5)
+cliente_actual = menu_inicio(listaClientes)
+mostrar_menu = cliente_actual is not None
 
 
 if mostrar_menu and cliente_actual:
@@ -360,7 +365,7 @@ if mostrar_menu and cliente_actual:
     while continuarOperaciones:
         limpiarPantalla()
         print("\n+-------------------------MENÚ DE OPERACIONES-------------------------+")
-        print(f"| Bienvenido/a | Usuario: {cliente_actual["Usuario"]} | DNI: {cliente_actual["dni_actual"]}")
+        print(f'| Bienvenido/a | Usuario: {cliente_actual["Usuario"]} | DNI: {cliente_actual["dni_actual"]}')
         print("+---------------------------------------------------------------------+")
         print("| 1. Crear una cuenta en pesos (ARS)                                  |")
         print("| 2. Depositar pesos (ARS)                                            |")
