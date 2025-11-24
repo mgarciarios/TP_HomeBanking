@@ -627,29 +627,69 @@ def main():
             elif opcionCuentas == 7:
                 limpiarPantalla()
 
+                tiene_pesos = "Cuenta en pesos" in cliente_actual
+                tiene_dolares = "Cuenta en dólares" in cliente_actual
+
+                if not tiene_pesos and not tiene_dolares:
+                    print("No posee ninguna cuenta. Cree una cuenta en pesos o dólares antes de transferir.")
+                    pausar_y_volver()
+                    continue
+
+                if not tiene_pesos:
+                    print("No posee Cuenta en pesos. Cree una antes de transferir ARS ↔ USD.")
+                    pausar_y_volver()
+                    continue
+
+                if not tiene_dolares:
+                    print("No posee Cuenta en dólares. Cree una antes de transferir ARS ↔ USD.")
+                    pausar_y_volver()
+                    continue
+
+
                 try:
                     monto = float(input("Ingrese el monto a depositar en dólares: "))
-                    depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
-                    guardarClientes(listaClientes)
-                    monto = float(input("Ingrese el monto a transferir: "))
+                
+                except ValueError:
+                    print("Monto/Opción inválida. Ingrese un valor numérico.")
+                    pausar_y_volver()
+
+                if monto <= 0:
+                    print("El monto debe ser mayor a 0.")
+                    pausar_y_volver()
+                    continue
 
                     print("\nSeleccione tipo de transferencia:")
                     print("1. Pesos (ARS) -> Dólares (USD)")
                     print("2. Dólares (USD) -> Pesos (ARS)")
-                    tipo = int(input("Opción: "))
 
+                    try:
+                        tipo = int(input("Opción: "))
+                    except ValueError:
+                        print("Opción inválida.")
+                        pausar_y_volver()
+                        continue
+                    
                     if tipo == 1:
-                        transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
-                        registrarOperacion(cliente_actual["Usuario"], "Comprar dolares")
+                        transferirEntreCuentas(listaClientes, dni_actual,
+                                            "Cuenta en pesos",
+                                            "Cuenta en dólares",
+                                            monto)
+                        registrarOperacion(cliente_actual["Usuario"], "Transferencia ARS a USD")
+
                     elif tipo == 2:
-                        transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
-                        registrarOperacion(cliente_actual["Usuario"], "Comprar pesos")
+                        transferirEntreCuentas(listaClientes, dni_actual,
+                                            "Cuenta en dólares",
+                                            "Cuenta en pesos",
+                                            monto)
+                        registrarOperacion(cliente_actual["Usuario"], "Transferencia USD a ARS")
+
                     else:
                         print("Opción de transferencia inválida.")
                         pausar_y_volver()
-                except ValueError:
-                    print("Monto/Opción inválida. Ingrese un valor numérico.")
-                    pausar_y_volver()
+                        continue
+
+                    guardarClientes(listaClientes)
+                    
 
             elif opcionCuentas == 8:
                 movimientos = obtener_movimientos_usuario(cliente_actual["Usuario"], "operaciones.csv")
