@@ -17,3 +17,4 @@ env/
 
 # Archivos de VS Code
 .vscode/
+.DS_Store

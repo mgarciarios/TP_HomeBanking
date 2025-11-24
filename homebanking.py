@@ -122,16 +122,6 @@ def iniciarSesion(lista):
     Returns:
         dict | None: El cliente autenticado si los datos son correctos; None si el usuario decide salir.
     """
-def iniciarSesion(lista):
-    """
-    Inicia sesión pidiendo DNI, usuario y contraseña. Permite reintentos.
-
-    Args:
-        lista (list): Lista de clientes (diccionarios) con 'dni_actual', 'Usuario' y 'Contraseña'.
-
-    Returns:
-        dict | None: El cliente autenticado si los datos son correctos; None si el usuario decide salir.
-    """
     while True:
         limpiarPantalla()
         dni_actual = pedir_dni()
@@ -156,22 +146,6 @@ def iniciarSesion(lista):
         if continuar == 'N':
             print("Ha salido del sistema exitosamente.")
             return None
-
-
-def sumarUsuarioALaBD(cliente, listaClientes):
-    """
-    Agrega el cliente a la lista si aún no está presente.
-
-    Args:
-        cliente (dict): Diccionario con los datos del cliente.
-        listaClientes (list): Colección donde se almacenan los clientes.
-
-    Returns:
-        list: La lista actualizada.
-    """
-    if cliente not in listaClientes:
-        listaClientes.append(cliente)
-    return listaClientes
 
 def crearCuenta(listaClientes, dni_actual, tipoCuenta, moneda):
     """
@@ -454,13 +428,24 @@ def cargarSube(listaClientes, dni_actual, monto):
             cliente = c
 
     limpiarPantalla()
+
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
         return
 
+    if monto <= 0:
+        print("El monto debe ser mayor a 0.")
+        pausar_y_volver()
+        return
+
     if "Cuenta en pesos" not in cliente:
         print("Debe tener una cuenta en pesos para cargar la SUBE.")
+        pausar_y_volver()
+        return
+
+    if cliente["Cuenta en pesos"]["Saldo"] < monto:
+        print("Saldo insuficiente.")
         pausar_y_volver()
         return
 
@@ -470,16 +455,10 @@ def cargarSube(listaClientes, dni_actual, monto):
             "Número SUBE": str(random.randint(1000,9999)) + "-" + str(random.randint(1000,9999))
         }
 
-    if cliente["Cuenta en pesos"]["Saldo"] < monto:
-        print("Saldo insuficiente en la cuenta en pesos.")
-        pausar_y_volver()
-        return
-
     cliente["Cuenta en pesos"]["Saldo"] -= monto
     cliente["SUBE"]["Saldo"] += monto
 
-    print(f"Se cargaron {monto:.2f} ARS a la SUBE.")
-    print(f"Saldo actual SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
+    print(f"Carga exitosa. Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
     registrarOperacion(cliente["Usuario"], f"Carga SUBE {monto:.2f} ARS")
     guardarClientes(listaClientes)
     pausar_y_volver()
@@ -490,17 +469,16 @@ def extraerDinero(listaClientes, dni_actual, monto, tipoCuenta, moneda):
 
     Args:
         listaClientes (list): Lista de clientes.
-        dni_actual (int): DNI del titular.
+        dni_actual (INT): DNI del titular. 
         monto (float): Importe a retirar.
         tipoCuenta (str): Cuenta desde la cual se debita.
         moneda (str): Moneda para mostrar el resultado.
     """
-    cliente = None
-    for i in listaClientes:
-        if i["dni_actual"] == dni_actual:
-            cliente = i
+
+    cliente = next((c for c in listaClientes if c["dni_actual"] == dni_actual), None)
 
     limpiarPantalla()
+
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
@@ -508,6 +486,11 @@ def extraerDinero(listaClientes, dni_actual, monto, tipoCuenta, moneda):
 
     if tipoCuenta not in cliente:
         print(f"No posee una {tipoCuenta}.")
+        pausar_y_volver()
+        return
+
+    if monto <= 0:
+        print("El monto debe ser mayor a 0.")
         pausar_y_volver()
         return
 
@@ -556,7 +539,7 @@ def main():
     elif opcionMain == 2:
         nuevoCliente = registrarUsuario(listaClientes)
         if nuevoCliente is not None:
-            sumarUsuarioALaBD(nuevoCliente, listaClientes)
+            #aca se deberia agregar el usuario al json?
             cliente_actual = nuevoCliente
             print("Cuenta creada e iniciada sesión automáticamente.")
             mostrar_menu = True
@@ -641,6 +624,8 @@ def main():
                 registrarOperacion(cliente_actual["Usuario"], "Consultar saldo")
 
             elif opcionCuentas == 7:
+                limpiarPantalla()
+
                 try:
                     monto = float(input("Ingrese el monto a depositar en dólares: "))
                     depositar(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
