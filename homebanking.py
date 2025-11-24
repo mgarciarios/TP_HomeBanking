@@ -670,17 +670,11 @@ def main():
                         continue
                     
                     if tipo == 1:
-                        transferirEntreCuentas(listaClientes, dni_actual,
-                                            "Cuenta en pesos",
-                                            "Cuenta en dólares",
-                                            monto)
+                        transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
                         registrarOperacion(cliente_actual["Usuario"], "Transferencia ARS a USD")
 
                     elif tipo == 2:
-                        transferirEntreCuentas(listaClientes, dni_actual,
-                                            "Cuenta en dólares",
-                                            "Cuenta en pesos",
-                                            monto)
+                        transferirEntreCuentas(listaClientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
                         registrarOperacion(cliente_actual["Usuario"], "Transferencia USD a ARS")
 
                     else:
@@ -702,20 +696,30 @@ def main():
                 pausar_y_volver()
 
             elif opcionCuentas == 9:
-                DNI = int(input("Ingrese su DNI: "))
                 tipo = int(input("Seleccione cuenta: 1-Pesos / 2-Dólares: "))
                 monto = float(input("Ingrese el monto a extraer: "))
                 if tipo == 1:
-                    extraerDinero(listaClientes, DNI, monto, "Cuenta en pesos", "ARS")
+                    extraerDinero(listaClientes, dni_actual, monto, "Cuenta en pesos", "ARS")
                 elif tipo == 2:
-                    extraerDinero(listaClientes, DNI, monto, "Cuenta en dólares", "USD")
+                    extraerDinero(listaClientes, dni_actual, monto, "Cuenta en dólares", "USD")
                 else:
                     print("Opción inválida.") 
 
             elif opcionCuentas == 10:
-                DNI = int(input("Ingrese su DNI: "))
-                monto = float(input("Ingrese el monto a cargar en la SUBE: "))
-                cargarSube(listaClientes, DNI, monto)   
+                try:
+                    monto = float(input("Ingrese el monto a cargar en la SUBE: "))
+                    if monto <= 0:
+                        print("El monto debe ser mayor que 0.")
+                        pausar_y_volver()
+                        continue
+
+                except ValueError:
+                    print("Monto inválido. Ingrese un número positivo.")
+                    pausar_y_volver()
+                    continue
+
+                cargarSube(listaClientes, dni_actual, monto) 
+                registrarOperacion(cliente_actual["Usuario"], f"Carga SUBE {monto:.2f} ARS")  
 
             elif opcionCuentas == 11:
                 historial_sube(listaClientes, dni_actual)
