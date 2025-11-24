@@ -539,7 +539,8 @@ def main():
     elif opcionMain == 2:
         nuevoCliente = registrarUsuario(listaClientes)
         if nuevoCliente is not None:
-            #aca se deberia agregar el usuario al json?
+            listaClientes.append(nuevoCliente)
+            guardarClientes(listaClientes)
             cliente_actual = nuevoCliente
             print("Cuenta creada e iniciada sesión automáticamente.")
             mostrar_menu = True
