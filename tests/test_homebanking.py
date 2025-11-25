@@ -1,6 +1,15 @@
+import os
+import sys
+
+# Asegurar que la carpeta raíz del proyecto esté en sys.path para poder
+# importar `homebanking` cuando pytest se ejecute desde la carpeta tests.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from homebanking import transferir_entre_cuentas
 from homebanking import depositar
 from homebanking import crear_cuenta
+
+
 
 
 def test_transferir_entre_cuentas():

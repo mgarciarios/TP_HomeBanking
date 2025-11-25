@@ -5,6 +5,7 @@ import random
 import os
 import time
 import json
+import sys
 from persistencia import guardar_clientes, cargar_clientes
 
 def pedir_dni():
@@ -49,6 +50,15 @@ def pausar_y_volver():
     Args:
         None
     """
+    """Pausa la ejecución y pide confirmación para volver al menú principal.
+
+    Durante la ejecución de tests (pytest) o si la entrada no es un TTY, no
+    bloquea esperando input para evitar fallos en pruebas automatizadas.
+    """
+    # Si estamos corriendo bajo pytest o stdin no es un TTY, no bloqueamos.
+    if os.environ.get('PYTEST_CURRENT_TEST') or not sys.stdin.isatty():
+        return
+
     input("\nPresione ENTER para volver al menú de operaciones...")
     limpiar_pantalla()
 
@@ -768,4 +778,5 @@ def main():
                 print("Opción inválida en el menú de operaciones.")
                 time.sleep(1.5)
 
-main()
+if __name__ == "__main__":
+    main()
