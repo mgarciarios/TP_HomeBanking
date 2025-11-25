@@ -10,10 +10,25 @@ from persistencia import guardar_clientes, cargar_clientes
 def pedir_dni():
     while True:
         try:
-            return int(input("Ingrese su DNI sin puntos (ej: 12345678): "))
+            dni = int(input("Ingrese su DNI sin puntos (ej: 12345678): "))
         except ValueError:
             print("DNI inválido. Solo números.")
             time.sleep(1.0)
+        
+        dni_str = str(dni)
+
+        if dni <= 0:
+            print("El DNI debe ser un número positivo.")
+            time.sleep(1)
+            continue
+        
+        if len(dni_str) not in (7, 8):
+            print("El DNI debe tener 7 u 8 dígitos.")
+            time.sleep(1)
+            continue
+
+        return dni
+
 
 def limpiar_pantalla():
     """
@@ -694,14 +709,35 @@ def main():
                 pausar_y_volver()
 
             elif opcion_cuentas == 9:
-                tipo = int(input("Seleccione cuenta: 1-Pesos / 2-Dólares: "))
-                monto = float(input("Ingrese el monto a extraer: "))
+                try:
+                    tipo = int(input("Seleccione cuenta: 1-Pesos / 2-Dólares: "))
+                except ValueError:
+                    print("Opción inválida. Debe ingresar 1 o 2.")
+                    pausar_y_volver()
+                    continue
+
+                if tipo not in (1, 2):
+                    print("Opción inválida. Debe seleccionar 1-Pesos o 2-Dólares.")
+                    pausar_y_volver()
+                    continue
+
+                try:
+                    monto = float(input("Ingrese el monto a extraer: "))
+                except ValueError:
+                    print("Monto inválido. Ingrese un número positivo.")
+                    pausar_y_volver()
+                    continue
+
+                if monto <= 0:
+                    print("El monto debe ser mayor que 0.")
+                    pausar_y_volver()
+                    continue
+
                 if tipo == 1:
                     extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en pesos", "ARS")
-                elif tipo == 2:
-                    extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD")
                 else:
-                    print("Opción inválida.") 
+                    extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD")
+
 
             elif opcion_cuentas == 10:
                 try:
