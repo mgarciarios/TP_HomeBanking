@@ -397,34 +397,37 @@ def obtener_movimientos_usuario(usuario, archivo="operaciones.csv"):
                 filas.append(linea.strip())
     return filas
 
-def historial_cargas_celular(usuario, archivo="operaciones.csv"):
+def historial_cargas_celular(lista_clientes, dni_actual):
     """
-    Muestra el historial de cargas de celular del usuario, 
-    filtrando las operaciones registradas como 'Carga Celular ...'.
+    Muestra el historial de cargas de celular del cliente,
+    leyendo la información detallada guardada dentro del cliente
+    (número, compañía, monto, fecha).
 
     Args:
-        usuario (str): Nombre de usuario autenticado.
-        archivo (str): Archivo CSV de operaciones.
+        lista_clientes (list): Lista de clientes en memoria.
+        dni_actual (int): DNI del cliente autenticado.
     """
     limpiar_pantalla()
     print("===== HISTORIAL DE CARGAS DE CELULAR =====\n")
 
-    movimientos = obtener_movimientos_usuario(usuario, archivo)
-    cargas = []
+    cliente = next((c for c in lista_clientes if c["dni_actual"] == dni_actual), None)
 
-    for linea in movimientos:
-        partes = linea.split(";")
-        if len(partes) >= 3:
-            tipo_operacion = partes[0]
-            fecha_hora = partes[2]
-            if "Carga Celular" in tipo_operacion:
-                cargas.append((fecha_hora, tipo_operacion))
+    if cliente is None:
+        print("Cliente no encontrado.")
+        pausar_y_volver()
+        return
 
-    if not cargas:
+    historial = cliente.get("Historial_celular", [])
+
+    if not historial:
         print("No se encontraron cargas de celular para este usuario.")
     else:
-        for fecha_hora, tipo in cargas:
-            print(f"{fecha_hora} - {tipo}")
+        for registro in historial:
+            numero = registro.get("numero", "N/D")
+            compania = registro.get("compania", "N/D")
+            monto = registro.get("monto", 0.0)
+            fecha_hora = registro.get("fecha_hora", "Sin fecha")
+            print(f"{fecha_hora} - Número: {numero} - Compañía: {compania} - Monto: {monto:.2f} ARS")
 
     pausar_y_volver()
 
@@ -432,12 +435,16 @@ def historial_cargas_celular(usuario, archivo="operaciones.csv"):
 def cargar_celular(lista_clientes, dni_actual, monto):
     """
     Acredita una carga de celular, descontando de la cuenta en pesos.
-    Registra la operación en el archivo de operaciones.
+    NO registra en operaciones.csv (eso lo hace el menú general),
+    pero guarda el detalle de la carga dentro del cliente para el historial.
 
     Args:
         lista_clientes (list): Lista de clientes.
         dni_actual (int): DNI del titular.
         monto (float): Monto a cargar (en ARS).
+
+    Returns:
+        bool: True si la carga se realizó con éxito, False en caso contrario.
     """
     cliente = next((c for c in lista_clientes if c["dni_actual"] == dni_actual), None)
 
@@ -446,22 +453,22 @@ def cargar_celular(lista_clientes, dni_actual, monto):
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
-        return
+        return False
 
     if monto <= 0:
         print("El monto debe ser mayor a 0.")
         pausar_y_volver()
-        return
+        return False
 
     if "Cuenta en pesos" not in cliente:
         print("Debe tener una cuenta en pesos para realizar una carga de celular.")
         pausar_y_volver()
-        return
+        return False
 
     if cliente["Cuenta en pesos"]["Saldo"] < monto:
         print("Saldo insuficiente en la cuenta en pesos.")
         pausar_y_volver()
-        return
+        return False
 
     numero_celular = input("Ingrese el número de celular (ej: 11XXXXXXXX): ").strip()
 
@@ -495,18 +502,27 @@ def cargar_celular(lista_clientes, dni_actual, monto):
 
     cliente["Cuenta en pesos"]["Saldo"] -= monto
 
+    fecha_hora = time.asctime(time.localtime())
+    registro = {
+        "numero": numero_celular,
+        "compania": compania,
+        "monto": monto,
+        "fecha_hora": fecha_hora
+    }
+
+    if "Historial_celular" not in cliente:
+        cliente["Historial_celular"] = []
+    cliente["Historial_celular"].append(registro)
+
     print("\nCarga de celular realizada con éxito.")
     print(f"Número: {numero_celular}")
     print(f"Compañía: {compania}")
     print(f"Monto cargado: {monto:.2f} ARS")
     print(f"Saldo restante en Cuenta en pesos: {cliente['Cuenta en pesos']['Saldo']:.2f} ARS")
 
-    # ahora solo se guarda cuando se logra realizar la recagra
-    detalle = f"Carga Celular {numero_celular}"
-    registrar_operacion(cliente["Usuario"], detalle)
-
-    guardar_clientes(lista_clientes)
     pausar_y_volver()
+    return True
+
 
 
 def extraer_dinero(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
@@ -793,15 +809,17 @@ def main():
                         print("El monto debe ser mayor que 0.")
                         pausar_y_volver()
                         continue
-
-                    if cargar_celular(lista_clientes, dni_actual, monto): 
-                        registrar_operacion(cliente_actual["Usuario"], f"Carga SUBE {monto:.2f} ARS")  
-                        guardar_clientes(lista_clientes)
-
                 except ValueError:
                     print("Monto inválido. Ingrese un número positivo.")
                     pausar_y_volver()
                     continue
+
+                exito_carga = cargar_celular(lista_clientes, dni_actual, monto)
+                if exito_carga:
+                    # En operaciones.csv solo se guarda "Carga Celular"
+                    registrar_operacion(cliente_actual["Usuario"], "Carga Celular")
+                    guardar_clientes(lista_clientes)
+
 
             elif opcion_cuentas == 11:
                 historial_cargas_celular(lista_clientes, dni_actual)
