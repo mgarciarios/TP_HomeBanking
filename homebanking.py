@@ -330,22 +330,21 @@ def transferir_entre_cuentas(lista_clientes, dni_actual, origen, destino, monto,
         pausar_y_volver()
         return
 
-    # para actualizar los saldos
-    cliente[origen]["Saldo"] = saldo_origen - monto
-
     if origen == "Cuenta en pesos" and destino == "Cuenta en dólares":
+        cliente[origen]["Saldo"] -= monto
         monto_acreditado = ars_a_usd(monto)
         cliente[destino]["Saldo"] += monto_acreditado
         print(f"Transferencia exitosa: Se debitaron {monto:.2f} ARS y se acreditaron {monto_acreditado:.2f} USD (Tasa: {tasa}).")
 
     elif origen == "Cuenta en dólares" and destino == "Cuenta en pesos":
+        cliente[origen]["Saldo"] -= monto
         monto_acreditado = usd_a_ars(monto)
         cliente[destino]["Saldo"] += monto_acreditado
         print(f"Transferencia exitosa: Se debitaron {monto:.2f} USD y se acreditaron {monto_acreditado:.2f} ARS (Tasa: {tasa}).")
 
     else:
-        cliente[origen]["Saldo"] += monto 
-        print("Transferencia no válida (origen y destino son el mismo tipo de cuenta).")
+        print("Transferencia no válida: ambas cuentas son del mismo tipo.")
+
     
     pausar_y_volver()
 
