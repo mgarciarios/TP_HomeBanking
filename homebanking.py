@@ -14,6 +14,7 @@ def pedir_dni():
         except ValueError:
             print("DNI inválido. Solo números.")
             time.sleep(1.0)
+            continue
         
         dni_str = str(dni)
 
