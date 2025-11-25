@@ -10,10 +10,25 @@ from persistencia import guardar_clientes, cargar_clientes
 def pedir_dni():
     while True:
         try:
-            return int(input("Ingrese su DNI sin puntos (ej: 12345678): "))
+            dni = int(input("Ingrese su DNI sin puntos (ej: 12345678): "))
         except ValueError:
             print("DNI inválido. Solo números.")
             time.sleep(1.0)
+        
+        dni_str = str(dni)
+
+        if dni <= 0:
+            print("El DNI debe ser un número positivo.")
+            time.sleep(1)
+            continue
+        
+        if len(dni_str) not in (7, 8):
+            print("El DNI debe tener 7 u 8 dígitos.")
+            time.sleep(1)
+            continue
+
+        return dni
+
 
 def limpiar_pantalla():
     """
@@ -722,7 +737,7 @@ def main():
                     extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en pesos", "ARS")
                 else:
                     extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD")
-                    
+
 
             elif opcion_cuentas == 10:
                 try:
