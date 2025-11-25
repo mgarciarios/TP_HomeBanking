@@ -1,6 +1,3 @@
-"""
-HomeBanking básico con registro, login, cuentas y operaciones simples.
-"""
 import random
 import os
 import time
@@ -56,7 +53,6 @@ def pausar_y_volver():
     Durante la ejecución de tests (pytest) o si la entrada no es un TTY, no
     bloquea esperando input para evitar fallos en pruebas automatizadas.
     """
-    # Si estamos corriendo bajo pytest o stdin no es un TTY, no bloqueamos.
     if os.environ.get('PYTEST_CURRENT_TEST') or not sys.stdin.isatty():
         return
 
@@ -77,7 +73,6 @@ def registrar_usuario(lista_clientes):
 
     nuevo_cliente = {}
 
-    # dni_actual
     limpiar_pantalla()
     dni_actual = pedir_dni()
 
@@ -88,7 +83,6 @@ def registrar_usuario(lista_clientes):
 
     nuevo_cliente["dni_actual"] = dni_actual
 
-    # Usuario
     limpiar_pantalla()
     usuario = input("Ingrese su usuario (se recomienda la primer letra del nombre y su apellido): ")    
     
@@ -238,22 +232,23 @@ def depositar(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
     if cliente_encontrado is None:
         print("El cliente no se encuentra dentro del sistema")
         pausar_y_volver()
-        return None
+        return False
     
     if tipo_cuenta not in cliente_encontrado:
         print(f"El cliente no posee una cuenta en {tipo_cuenta}. Debe crearla primero")
         pausar_y_volver()
-        return
+        return False
     
     if monto <= 0:
         print("El monto a depositar debe ser mayor a 0")
         pausar_y_volver()
-        return
+        return False
     
     cliente_encontrado[tipo_cuenta]["Saldo"] += monto
     print(f"Depósito realizado con éxito. Saldo actual: {cliente_encontrado[tipo_cuenta]['Saldo']:.2f} {moneda}")
     
     pausar_y_volver()
+    return True
 
 def consultar_saldo(lista_clientes, dni_actual, tipo_cuenta, moneda):
     """
@@ -300,11 +295,9 @@ def transferir_entre_cuentas(lista_clientes, dni_actual, origen, destino, monto,
         tasa (float): Tipo de cambio ARS por USD usado en la conversión.
     """
 
-    # conversiones
     usd_a_ars = lambda usd: usd * tasa
     ars_a_usd = lambda ars: ars / tasa
 
-    # buscar clientes
     cliente = None
     for c in lista_clientes:
         if c.get("dni_actual") == dni_actual:
@@ -316,30 +309,30 @@ def transferir_entre_cuentas(lista_clientes, dni_actual, origen, destino, monto,
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
-        return
+        return False
 
 
     if origen not in cliente or "Saldo" not in cliente[origen]:
         print(f"La cuenta de origen {origen} no existe o no tiene saldo definido.")
         pausar_y_volver()
-        return None
+        return False
     
     if destino not in cliente or "Saldo" not in cliente[destino]:
         print(f"La cuenta de destino {destino} no existe o no tiene saldo definido.")
         pausar_y_volver()
-        return None
+        return False
 
 
     saldo_origen = cliente[origen]["Saldo"]
     if saldo_origen < monto:
         print(f"Saldo insuficiente en la cuenta de origen {origen}. Saldo: {saldo_origen:.2f}")
         pausar_y_volver()
-        return None
+        return False
     
     if monto <= 0:
         print("El monto a transferir debe ser mayor a 0.")
         pausar_y_volver()
-        return
+        return False
 
     if origen == "Cuenta en pesos" and destino == "Cuenta en dólares":
         cliente[origen]["Saldo"] -= monto
@@ -355,9 +348,11 @@ def transferir_entre_cuentas(lista_clientes, dni_actual, origen, destino, monto,
 
     else:
         print("Transferencia no válida: ambas cuentas son del mismo tipo.")
-
+        pausar_y_volver()
+        return False
     
     pausar_y_volver()
+    return True
 
 def registrar_operacion(usuario, tipo_operacion, archivo="operaciones.csv"):
     """
@@ -456,22 +451,22 @@ def cargar_sube(lista_clientes, dni_actual, monto):
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
-        return
+        return False
 
     if monto <= 0:
         print("El monto debe ser mayor a 0.")
         pausar_y_volver()
-        return
+        return False
 
     if "Cuenta en pesos" not in cliente:
         print("Debe tener una cuenta en pesos para cargar la SUBE.")
         pausar_y_volver()
-        return
+        return False
 
     if cliente["Cuenta en pesos"]["Saldo"] < monto:
         print("Saldo insuficiente.")
         pausar_y_volver()
-        return
+        return False
 
     if "SUBE" not in cliente:
         cliente["SUBE"] = {
@@ -483,9 +478,9 @@ def cargar_sube(lista_clientes, dni_actual, monto):
     cliente["SUBE"]["Saldo"] += monto
 
     print(f"Carga exitosa. Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
-    registrar_operacion(cliente["Usuario"], f"Carga SUBE {monto:.2f} ARS")
-    guardar_clientes(lista_clientes)
+    
     pausar_y_volver()
+    return True
 
 def extraer_dinero(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
     """
@@ -506,28 +501,28 @@ def extraer_dinero(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
-        return
+        return False
 
     if tipo_cuenta not in cliente:
         print(f"No posee una {tipo_cuenta}.")
         pausar_y_volver()
-        return
+        return False
 
     if monto <= 0:
         print("El monto debe ser mayor a 0.")
         pausar_y_volver()
-        return
+        return False
 
     if cliente[tipo_cuenta]["Saldo"] < monto:
         print("Saldo insuficiente.")
         pausar_y_volver()
-        return
+        return False
 
     cliente[tipo_cuenta]["Saldo"] -= monto
     print(f"Extracción exitosa. Saldo restante: {cliente[tipo_cuenta]['Saldo']:.2f} {moneda}")
-    registrar_operacion(cliente["Usuario"], f"Extracción de {monto:.2f} {moneda}")
-    guardar_clientes(lista_clientes)
+    
     pausar_y_volver()
+    return True
 
 #MAIN
 def main():
@@ -547,12 +542,13 @@ def main():
     print("| Bienvenido/a al HomeBanking. Elija una opción para comenzar.        |")
     print("+---------------------------------------------------------------------+")
 
-    try:
-        opcion_main = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
-    except ValueError:
-        print("Ingresó un valor no numérico.")
-        time.sleep(1.5)
-        exit()
+    opcion_main = None
+    while opcion_main is None:
+        try:
+            opcion_main = int(input("1 para iniciar sesión, 2 para crear una cuenta: "))
+        except ValueError:
+            print("Ingresó un valor no numérico.")
+            time.sleep(1.5)
 
     if opcion_main == 1:
         cliente_actual = iniciar_sesion(lista_clientes)
@@ -606,13 +602,15 @@ def main():
             if opcion_cuentas == 1:
                 crear_cuenta(lista_clientes, dni_actual, "Cuenta en pesos", "ARS")
                 registrar_operacion(cliente_actual["Usuario"], "Creación de cuenta")
+                guardar_clientes(lista_clientes)
 
             elif opcion_cuentas == 2:
                 if "Cuenta en pesos" in cliente_actual:
                     try:
                         monto = float(input("Ingrese el monto a depositar en pesos: "))
-                        depositar(lista_clientes, dni_actual, monto, "Cuenta en pesos", "ARS")
-                        registrar_operacion(cliente_actual["Usuario"], "Depositar pesos")
+                        if depositar(lista_clientes, dni_actual, monto, "Cuenta en pesos", "ARS"):
+                            registrar_operacion(cliente_actual["Usuario"], "Depositar pesos")
+                            guardar_clientes(lista_clientes)
                     except ValueError:
                         print("Monto inválido. Ingrese un valor numérico.")
                         pausar_y_volver()
@@ -634,8 +632,9 @@ def main():
                 if "Cuenta en dólares" in cliente_actual:
                     try:
                         monto = float(input("Ingrese el monto a depositar en dólares: "))
-                        depositar(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD")
-                        registrar_operacion(cliente_actual["Usuario"], "Depositar dolares")
+                        if depositar(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD"):
+                            registrar_operacion(cliente_actual["Usuario"], "Depositar dolares")
+                            guardar_clientes(lista_clientes)
                     except ValueError:
                         print("Monto inválido. Ingrese un valor numérico.")
                         pausar_y_volver()
@@ -692,22 +691,26 @@ def main():
                     pausar_y_volver()
                     continue
 
+                exito_transferencia = False
+                desc_operacion = ""
+
                 if tipo == 1:
-                    transferir_entre_cuentas(lista_clientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
-                    registrar_operacion(cliente_actual["Usuario"], "Transferencia ARS a USD")
+                    exito_transferencia = transferir_entre_cuentas(lista_clientes, dni_actual, "Cuenta en pesos", "Cuenta en dólares", monto)
+                    desc_operacion = "Transferencia ARS a USD"
 
                 elif tipo == 2:
-                    transferir_entre_cuentas(lista_clientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
-                    registrar_operacion(cliente_actual["Usuario"], "Transferencia USD a ARS")
+                    exito_transferencia = transferir_entre_cuentas(lista_clientes, dni_actual, "Cuenta en dólares", "Cuenta en pesos", monto)
+                    desc_operacion = "Transferencia USD a ARS"
 
                 else:
                     print("Opción de transferencia inválida.")
                     pausar_y_volver()
                     continue
 
-                guardar_clientes(lista_clientes)
+                if exito_transferencia:
+                    registrar_operacion(cliente_actual["Usuario"], desc_operacion)
+                    guardar_clientes(lista_clientes)
         
-
             elif opcion_cuentas == 8:
                 movimientos = obtener_movimientos_usuario(cliente_actual["Usuario"], "operaciones.csv")
                 print(f"\nMovimientos del usuario {cliente_actual['Usuario']}:")
@@ -743,11 +746,15 @@ def main():
                     pausar_y_volver()
                     continue
 
+                exito_extraccion = False
                 if tipo == 1:
-                    extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en pesos", "ARS")
+                    exito_extraccion = extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en pesos", "ARS")
                 else:
-                    extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD")
+                    exito_extraccion = extraer_dinero(lista_clientes, dni_actual, monto, "Cuenta en dólares", "USD")
 
+                if exito_extraccion:
+                    registrar_operacion(cliente_actual["Usuario"], "Extracción de dinero")
+                    guardar_clientes(lista_clientes)
 
             elif opcion_cuentas == 10:
                 try:
@@ -757,17 +764,17 @@ def main():
                         pausar_y_volver()
                         continue
 
+                    if cargar_sube(lista_clientes, dni_actual, monto): 
+                        registrar_operacion(cliente_actual["Usuario"], f"Carga SUBE {monto:.2f} ARS")  
+                        guardar_clientes(lista_clientes)
+
                 except ValueError:
                     print("Monto inválido. Ingrese un número positivo.")
                     pausar_y_volver()
                     continue
 
-                cargar_sube(lista_clientes, dni_actual, monto) 
-                registrar_operacion(cliente_actual["Usuario"], f"Carga SUBE {monto:.2f} ARS")  
-
             elif opcion_cuentas == 11:
                 historial_sube(lista_clientes, dni_actual)
-
 
             elif opcion_cuentas == 12:
                 print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
@@ -779,5 +786,4 @@ def main():
                 print("Opción inválida en el menú de operaciones.")
                 time.sleep(1.5)
 
-if __name__ == "__main__":
-    main()
+main()
