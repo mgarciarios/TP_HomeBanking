@@ -397,90 +397,117 @@ def obtener_movimientos_usuario(usuario, archivo="operaciones.csv"):
                 filas.append(linea.strip())
     return filas
 
-def historial_sube(lista_clientes, dni_actual):
+def historial_cargas_celular(usuario, archivo="operaciones.csv"):
     """
-    Muestra únicamente los datos y saldos del cliente autenticado.
+    Muestra el historial de cargas de celular del usuario, 
+    filtrando las operaciones registradas como 'Carga Celular ...'.
 
     Args:
-        lista_clientes (list): Lista de clientes en memoria.
-        dni_actual (int): DNI del cliente autenticado.
+        usuario (str): Nombre de usuario autenticado.
+        archivo (str): Archivo CSV de operaciones.
     """
     limpiar_pantalla()
-    cliente = None
-    for c in lista_clientes:
-        if c.get("dni_actual") == dni_actual:
-            cliente = c
-            break
+    print("===== HISTORIAL DE CARGAS DE CELULAR =====\n")
 
-    print("=== HISTORIAL CARGA SUBE ===")
-    if not cliente:
-        print("No se encontró el cliente en memoria.")
-        pausar_y_volver()
-        return
+    movimientos = obtener_movimientos_usuario(usuario, archivo)
+    cargas = []
 
-    print("\n-----------------------------")
-    print(f"Usuario: {cliente.get('Usuario', 'No definido')}")
-    print(f"DNI: {cliente.get('dni_actual', 'No definido')}")
-    if "Cuenta en pesos" in cliente:
-        print(f"Cuenta en pesos: {cliente['Cuenta en pesos']['Saldo']:.2f} ARS")
-    if "Cuenta en dólares" in cliente:
-        print(f"Cuenta en dólares: {cliente['Cuenta en dólares']['Saldo']:.2f} USD")
-    if "SUBE" in cliente:
-        print(f"Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
-    print("\n-----------------------------")
+    for linea in movimientos:
+        partes = linea.split(";")
+        if len(partes) >= 3:
+            tipo_operacion = partes[0]
+            fecha_hora = partes[2]
+            if "Carga Celular" in tipo_operacion:
+                cargas.append((fecha_hora, tipo_operacion))
+
+    if not cargas:
+        print("No se encontraron cargas de celular para este usuario.")
+    else:
+        for fecha_hora, tipo in cargas:
+            print(f"{fecha_hora} - {tipo}")
+
     pausar_y_volver()
 
 
-def cargar_sube(lista_clientes, dni_actual, monto):
+def cargar_celular(lista_clientes, dni_actual, monto):
     """
-    Acredita saldo en la SUBE del cliente, descontando de su cuenta en pesos.
-    Si no existe la SUBE, la crea con un número simple.
+    Acredita una carga de celular, descontando de la cuenta en pesos.
+    Registra la operación en el archivo de operaciones.
 
     Args:
         lista_clientes (list): Lista de clientes.
         dni_actual (int): DNI del titular.
         monto (float): Monto a cargar (en ARS).
     """
-    cliente = None
-    for c in lista_clientes:
-        if c["dni_actual"] == dni_actual:
-            cliente = c
+    cliente = next((c for c in lista_clientes if c["dni_actual"] == dni_actual), None)
 
     limpiar_pantalla()
 
     if cliente is None:
         print("Cliente no encontrado.")
         pausar_y_volver()
-        return False
+        return
 
     if monto <= 0:
         print("El monto debe ser mayor a 0.")
         pausar_y_volver()
-        return False
+        return
 
     if "Cuenta en pesos" not in cliente:
-        print("Debe tener una cuenta en pesos para cargar la SUBE.")
+        print("Debe tener una cuenta en pesos para realizar una carga de celular.")
         pausar_y_volver()
-        return False
+        return
 
     if cliente["Cuenta en pesos"]["Saldo"] < monto:
-        print("Saldo insuficiente.")
+        print("Saldo insuficiente en la cuenta en pesos.")
         pausar_y_volver()
-        return False
+        return
 
-    if "SUBE" not in cliente:
-        cliente["SUBE"] = {
-            "Saldo": 0.0,
-            "Número SUBE": str(random.randint(1000,9999)) + "-" + str(random.randint(1000,9999))
-        }
+    numero_celular = input("Ingrese el número de celular (ej: 11XXXXXXXX): ").strip()
+
+    compania = None
+    while compania is None:
+        print("\nSeleccione la compañía:")
+        print("1. Claro")
+        print("2. Movistar")
+        print("3. Personal")
+        print("4. Tuenti")
+        try:
+            opcion = int(input("Opción (1-4): "))
+        except ValueError:
+            print("Opción inválida. Debe ingresar un número entre 1 y 4.")
+            time.sleep(1.5)
+            limpiar_pantalla()
+            continue
+
+        if opcion == 1:
+            compania = "Claro"
+        elif opcion == 2:
+            compania = "Movistar"
+        elif opcion == 3:
+            compania = "Personal"
+        elif opcion == 4:
+            compania = "Tuenti"
+        else:
+            print("Opción inválida. Debe elegir un valor entre 1 y 4.")
+            time.sleep(1.5)
+            limpiar_pantalla()
 
     cliente["Cuenta en pesos"]["Saldo"] -= monto
-    cliente["SUBE"]["Saldo"] += monto
 
-    print(f"Carga exitosa. Saldo SUBE: {cliente['SUBE']['Saldo']:.2f} ARS")
-    
+    print("\nCarga de celular realizada con éxito.")
+    print(f"Número: {numero_celular}")
+    print(f"Compañía: {compania}")
+    print(f"Monto cargado: {monto:.2f} ARS")
+    print(f"Saldo restante en Cuenta en pesos: {cliente['Cuenta en pesos']['Saldo']:.2f} ARS")
+
+    # ahora solo se guarda cuando se logra realizar la recagra
+    detalle = f"Carga Celular {numero_celular}"
+    registrar_operacion(cliente["Usuario"], detalle)
+
+    guardar_clientes(lista_clientes)
     pausar_y_volver()
-    return True
+
 
 def extraer_dinero(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
     """
@@ -492,6 +519,9 @@ def extraer_dinero(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
         monto (float): Importe a retirar.
         tipo_cuenta (str): Cuenta desde la cual se debita.
         moneda (str): Moneda para mostrar el resultado.
+
+    Returns:
+        bool: True si la extracción se realizó con éxito, False en caso contrario.
     """
 
     cliente = next((c for c in lista_clientes if c["dni_actual"] == dni_actual), None)
@@ -518,9 +548,9 @@ def extraer_dinero(lista_clientes, dni_actual, monto, tipo_cuenta, moneda):
         pausar_y_volver()
         return False
 
+    # Si llegó hasta acá, la extracción es válida
     cliente[tipo_cuenta]["Saldo"] -= monto
     print(f"Extracción exitosa. Saldo restante: {cliente[tipo_cuenta]['Saldo']:.2f} {moneda}")
-    
     pausar_y_volver()
     return True
 
@@ -587,8 +617,8 @@ def main():
             print("| 7. Transferir entre sus cuentas (ARS <-> USD)                       |")
             print("| 8. Consultar movimientos del sistema                                |")
             print("| 9. Extraer dinero                                                   |")
-            print("| 10. Cargar SUBE                                                     |")
-            print("| 11. Historial carga sube                                            |")
+            print("| 10. Cargar Celular                                                  |")
+            print("| 11. Historial de Cargas de Celular                                  |")
             print("| 12. Salir                                                           |")
             print("+---------------------------------------------------------------------+")
 
@@ -758,13 +788,13 @@ def main():
 
             elif opcion_cuentas == 10:
                 try:
-                    monto = float(input("Ingrese el monto a cargar en la SUBE: "))
+                    monto = float(input("Ingrese el monto que desea cargar a su celular: "))
                     if monto <= 0:
                         print("El monto debe ser mayor que 0.")
                         pausar_y_volver()
                         continue
 
-                    if cargar_sube(lista_clientes, dni_actual, monto): 
+                    if cargar_celular(lista_clientes, dni_actual, monto): 
                         registrar_operacion(cliente_actual["Usuario"], f"Carga SUBE {monto:.2f} ARS")  
                         guardar_clientes(lista_clientes)
 
@@ -774,7 +804,7 @@ def main():
                     continue
 
             elif opcion_cuentas == 11:
-                historial_sube(lista_clientes, dni_actual)
+                historial_cargas_celular(lista_clientes, dni_actual)
 
             elif opcion_cuentas == 12:
                 print("Sesión finalizada. Muchas gracias por usar nuestro HomeBanking.")
