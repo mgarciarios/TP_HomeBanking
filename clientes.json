@@ -30,5 +30,24 @@
             "Saldo": 0.0,
             "Número SUBE": "2196-4990"
         }
+    },
+    {
+        "dni_actual": 98765432,
+        "Usuario": "yu",
+        "Contraseña": "12345678M",
+        "Cuenta en pesos": {
+            "Saldo": 49900.0,
+            "Datos": [
+                "3797631690077670443628",
+                "yu.bank.pesos"
+            ]
+        },
+        "Cuenta en dólares": {
+            "Saldo": 0.1,
+            "Datos": [
+                "7846792256814755434339",
+                "yu.bank.dolares"
+            ]
+        }
     }
 ]
